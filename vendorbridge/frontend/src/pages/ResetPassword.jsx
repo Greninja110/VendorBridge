@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import api from '../api/axios';
+import { c, r, sh } from '../theme';
 
 export default function ResetPassword() {
   const [searchParams]          = useSearchParams();
@@ -72,18 +73,18 @@ export default function ResetPassword() {
 }
 
 const styles = {
-  page:    { minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'linear-gradient(135deg,#0a1d17 0%,#043b0c 100%)', padding:'24px' },
-  card:    { background:'#fff', borderRadius:'16px', padding:'40px', width:'100%', maxWidth:'420px', boxShadow:'0 25px 50px rgba(0,0,0,0.4)' },
+  page:    { minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:`linear-gradient(135deg,${c.sidebar} 0%,${c.primaryDeep} 100%)`, padding:'24px' },
+  card:    { background:c.surface, borderRadius:r['2xl'], padding:'40px', width:'100%', maxWidth:'420px', boxShadow:sh.login },
   logoRow: { display:'flex', alignItems:'center', gap:'10px', marginBottom:'28px' },
-  logoIcon:{ width:'40px', height:'40px', borderRadius:'10px', background:'linear-gradient(135deg,#039b15,#056715)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontWeight:'700', fontSize:'14px' },
-  logoText:{ fontSize:'20px', fontWeight:'700', color:'#0a1d17' },
-  title:   { fontSize:'22px', fontWeight:'700', color:'#111827', marginBottom:'6px' },
-  subtitle:{ fontSize:'14px', color:'#6b7280', marginBottom:'24px' },
-  error:   { background:'#fef2f2', border:'1px solid #fecaca', color:'#dc2626', borderRadius:'8px', padding:'10px 14px', fontSize:'14px', marginBottom:'16px' },
-  success: { background:'#f0fdf4', border:'1px solid #bbf7d0', color:'#15803d', borderRadius:'8px', padding:'10px 14px', fontSize:'14px', marginBottom:'16px' },
+  logoIcon:{ width:'40px', height:'40px', borderRadius:r.lg, background:`linear-gradient(135deg,${c.primary},${c.primaryDark})`, display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontWeight:'700', fontSize:'14px' },
+  logoText:{ fontSize:'20px', fontWeight:'700', color:c.sidebar },
+  title:   { fontSize:'22px', fontWeight:'700', color:c.gray900, marginBottom:'6px' },
+  subtitle:{ fontSize:'14px', color:c.gray500, marginBottom:'24px' },
+  error:   { background:c.errorBg, border:`1px solid ${c.errorBorder}`, color:c.errorText, borderRadius:r.md, padding:'10px 14px', fontSize:'14px', marginBottom:'16px' },
+  success: { background:c.primaryBgSoft, border:`1px solid ${c.primaryBorder}`, color:c.primaryText, borderRadius:r.md, padding:'10px 14px', fontSize:'14px', marginBottom:'16px' },
   form:    { display:'flex', flexDirection:'column', gap:'6px' },
-  label:   { fontSize:'14px', fontWeight:'500', color:'#374151', marginBottom:'4px', marginTop:'10px' },
-  input:   { padding:'10px 14px', borderRadius:'8px', border:'1px solid #d1d5db', fontSize:'14px', color:'#111827', outline:'none', width:'100%' },
-  btn:     { marginTop:'20px', padding:'12px', borderRadius:'8px', border:'none', background:'linear-gradient(135deg,#039b15,#056715)', color:'#fff', fontWeight:'600', fontSize:'15px', cursor:'pointer', width:'100%' },
-  footer:  { marginTop:'20px', textAlign:'center', fontSize:'14px', color:'#6b7280' },
+  label:   { fontSize:'14px', fontWeight:'500', color:c.gray700, marginBottom:'4px', marginTop:'10px' },
+  input:   { padding:'10px 14px', borderRadius:r.md, border:`1px solid ${c.gray300}`, fontSize:'14px', color:c.gray900, outline:'none', width:'100%' },
+  btn:     { marginTop:'20px', padding:'12px', borderRadius:r.md, border:'none', background:`linear-gradient(135deg,${c.primary},${c.primaryDark})`, color:'#fff', fontWeight:'600', fontSize:'15px', cursor:'pointer', width:'100%' },
+  footer:  { marginTop:'20px', textAlign:'center', fontSize:'14px', color:c.gray500 },
 };
