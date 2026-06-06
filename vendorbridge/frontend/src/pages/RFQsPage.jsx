@@ -3,14 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import Sidebar from './dashboards/Sidebar';
+import { fmtDate } from '../utils/date';
 
-const ACCENT = '#039b15';
+import { c, r, sh } from '../theme';
+const ACCENT = c.primary;
 const STATUS_COLORS = {
   Draft:     { bg: '#f3f4f6', color: '#6b7280' },
   Published: { bg: '#dcfce7', color: '#15803d' },
   Closed:    { bg: '#dbeafe', color: '#1d4ed8' },
 };
-const EMPTY_FORM = { title: '', category: '', deadline: '', description: '', lines: [], vendor_ids: [], status: 'Draft' };
+const EMPTY_FORM = { title: '', category: '', deadline: '', description: '', lines: [], vendor_ids: [], status: 'Draft', visibility: 'public' };
 const EMPTY_LINE = { item_description: '', quantity: 1, unit: 'NOS' };
 
 export default function RFQsPage() {
@@ -43,8 +45,8 @@ export default function RFQsPage() {
 
   useEffect(() => {
     if (create) {
-      api.get('/api/vendors', { params: { status: 'Active' } })
-        .then(({ data }) => setVendors(data.vendors || []))
+      api.get('/api/vendors')
+        .then(({ data }) => setVendors((data.vendors || []).filter(v => v.status !== 'Blocked')))
         .catch(() => {});
     }
   }, [create]);
@@ -154,8 +156,12 @@ export default function RFQsPage() {
                   <tr key={r.rfq_id} style={s.tr}>
                     <td style={{ ...s.td, fontWeight: '600', color: '#111827', cursor: 'pointer' }} onClick={() => openDetail(r)}>{r.title}</td>
                     <td style={s.td}>{r.category || <Na />}</td>
-                    <td style={s.td}>{r.deadline}</td>
-                    <td style={{ ...s.td, textAlign: 'center' }}>{r.vendor_count}</td>
+                    <td style={s.td}>{fmtDate(r.deadline)}</td>
+                    <td style={{ ...s.td, textAlign: 'center' }}>
+                      {r.visibility === 'public'
+                        ? <span style={{ background: c.primaryBg, color: c.primaryText, borderRadius: r.full, padding: '2px 8px', fontSize: '11px', fontWeight: '700' }}>All</span>
+                        : r.vendor_count}
+                    </td>
                     <td style={{ ...s.td, textAlign: 'center' }}>{r.quotation_count}</td>
                     <td style={s.td}><span style={{ ...s.chip, ...STATUS_COLORS[r.status] }}>{r.status}</span></td>
                     <td style={s.td}>
@@ -185,7 +191,7 @@ export default function RFQsPage() {
       {detail && (
         <Modal title={detail.title} onClose={() => setDetail(null)}>
           <InfoRow label="Category"    val={detail.category || '—'} />
-          <InfoRow label="Deadline"    val={detail.deadline} />
+          <InfoRow label="Deadline"    val={fmtDate(detail.deadline)} />
           <InfoRow label="Status"      val={
             canManage
               ? <select value={detail.status} onChange={(e) => changeStatus(detail.rfq_id, e.target.value)} style={s.inlineSelect}>
@@ -194,6 +200,11 @@ export default function RFQsPage() {
                   <option value="Closed">Closed</option>
                 </select>
               : <span style={{ ...s.chip, ...STATUS_COLORS[detail.status] }}>{detail.status}</span>
+          } />
+          <InfoRow label="Visibility"   val={
+            detail.visibility === 'private'
+              ? <span style={{ background: c.blueBg, color: c.blue, borderRadius: r.full, padding: '2px 10px', fontSize: '11px', fontWeight: '700' }}>🔒 Private</span>
+              : <span style={{ background: c.primaryBg, color: c.primaryText, borderRadius: r.full, padding: '2px 10px', fontSize: '11px', fontWeight: '700' }}>🌐 Public</span>
           } />
           <InfoRow label="Description" val={detail.description || '—'} />
           <InfoRow label="Created by"  val={detail.created_by_name} />
@@ -296,17 +307,75 @@ export default function RFQsPage() {
             ))}
             <button type="button" style={s.addLineBtn} onClick={addLine}>+ Add Line Item</button>
 
-            {vendors.length > 0 && (
+            <div style={s.sectionTitle}>Vendor Visibility</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '12px' }}>
+              <button type="button" onClick={() => setForm({ ...form, visibility: 'public', vendor_ids: [] })} style={{
+                padding: '10px 12px', borderRadius: r.md, cursor: 'pointer', textAlign: 'left',
+                border: form.visibility === 'public' ? `2px solid ${ACCENT}` : `1.5px solid ${c.gray200}`,
+                background: form.visibility === 'public' ? c.primaryBg : c.surface,
+                transition: 'all 0.15s',
+              }}>
+                <div style={{ fontWeight: '700', fontSize: '13px', color: form.visibility === 'public' ? c.primaryText : c.gray700 }}>🌐 Public</div>
+                <div style={{ fontSize: '11px', marginTop: '2px', color: form.visibility === 'public' ? c.primaryText : c.gray400 }}>All active vendors receive this RFQ</div>
+              </button>
+              <button type="button" onClick={() => setForm({ ...form, visibility: 'private' })} style={{
+                padding: '10px 12px', borderRadius: r.md, cursor: 'pointer', textAlign: 'left',
+                border: form.visibility === 'private' ? `2px solid ${c.blue}` : `1.5px solid ${c.gray200}`,
+                background: form.visibility === 'private' ? c.blueBg : c.surface,
+                transition: 'all 0.15s',
+              }}>
+                <div style={{ fontWeight: '700', fontSize: '13px', color: form.visibility === 'private' ? c.blue : c.gray700 }}>🔒 Private</div>
+                <div style={{ fontSize: '11px', marginTop: '2px', color: form.visibility === 'private' ? c.blue : c.gray400 }}>Select specific vendors only</div>
+              </button>
+            </div>
+
+            {form.visibility === 'public' && (
+              <div style={{ background: c.primaryBgSoft, border: `1px solid ${c.primaryBorder}`, borderRadius: r.md, padding: '10px 14px', fontSize: '13px', color: c.primaryText }}>
+                ✓ All active vendors will receive this RFQ when published.
+              </div>
+            )}
+
+            {form.visibility === 'private' && (
               <>
-                <div style={s.sectionTitle}>Assign Vendors</div>
-                <div style={s.vendorGrid}>
-                  {vendors.map(v => (
-                    <label key={v.vendor_id} style={{ ...s.vendorCheck, ...(form.vendor_ids.includes(v.vendor_id) ? { borderColor: ACCENT, background: '#f0fdf4' } : {}) }}>
-                      <input type="checkbox" checked={form.vendor_ids.includes(v.vendor_id)} onChange={() => toggleVendor(v.vendor_id)} style={{ marginRight: '6px' }} />
-                      <span style={{ fontSize: '12px', fontWeight: '500' }}>{v.name}</span>
-                    </label>
-                  ))}
+                <div style={{ fontSize: '12px', color: c.gray500, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  Select which vendors can see and respond to this RFQ.
+                  {form.vendor_ids.length > 0 && (
+                    <span style={{ background: ACCENT, color: '#fff', borderRadius: '12px', padding: '1px 8px', fontSize: '10px', fontWeight: '700' }}>
+                      {form.vendor_ids.length} selected
+                    </span>
+                  )}
                 </div>
+                {vendors.length === 0 ? (
+                  <div style={{ fontSize: '12px', color: c.gray400, padding: '10px', background: c.gray50, borderRadius: r.md }}>No active vendors found. Activate vendors first.</div>
+                ) : (
+                  <div style={{ border: `1px solid ${c.gray200}`, borderRadius: r.md, overflow: 'hidden', maxHeight: '200px', overflowY: 'auto' }}>
+                    {vendors.map((v, i) => {
+                      const checked = form.vendor_ids.includes(v.vendor_id);
+                      return (
+                        <label key={v.vendor_id} onClick={() => toggleVendor(v.vendor_id)} style={{
+                          display: 'flex', alignItems: 'center', gap: '10px',
+                          padding: '9px 12px', cursor: 'pointer',
+                          background: checked ? c.primaryBgSoft : c.surface,
+                          borderBottom: i < vendors.length - 1 ? `1px solid ${c.gray50}` : 'none',
+                          transition: 'background 0.1s',
+                        }}>
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => toggleVendor(v.vendor_id)}
+                            onClick={e => e.stopPropagation()}
+                            style={{ width: '15px', height: '15px', accentColor: ACCENT, cursor: 'pointer', flexShrink: 0 }}
+                          />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: '13px', fontWeight: '600', color: c.gray900, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{v.name}</div>
+                            <div style={{ fontSize: '11px', color: c.gray500, marginTop: '1px' }}>{v.category || 'No category'}{v.contact_email ? ` · ${v.contact_email}` : ''}</div>
+                          </div>
+                          {checked && <span style={{ fontSize: '13px', color: ACCENT, fontWeight: '700', flexShrink: 0 }}>✓</span>}
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
               </>
             )}
 
@@ -343,40 +412,38 @@ function FRow({ label, children }) {
 function Na() { return <span style={{ color: '#d1d5db' }}>—</span>; }
 
 const s = {
-  layout:    { display: 'flex', minHeight: '100vh', background: '#f3f4f6', fontFamily: 'Inter,system-ui,sans-serif' },
+  layout:    { display: 'flex', minHeight: '100vh', background: c.pageBg, fontFamily: "'Inter',system-ui,sans-serif" },
   body:      { flex: 1, padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: '18px', overflow: 'auto' },
   header:    { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' },
-  title:     { fontSize: '22px', fontWeight: '700', color: '#111827', margin: 0 },
-  subtitle:  { fontSize: '13px', color: '#6b7280', marginTop: '4px' },
-  addBtn:    { padding: '9px 18px', borderRadius: '8px', border: 'none', background: ACCENT, color: '#fff', fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
+  title:     { fontSize: '22px', fontWeight: '700', color: c.gray900, margin: 0 },
+  subtitle:  { fontSize: '13px', color: c.gray500, marginTop: '4px' },
+  addBtn:    { padding: '9px 18px', borderRadius: r.md, border: 'none', background: ACCENT, color: '#fff', fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
   tabRow:    { display: 'flex', gap: '8px' },
-  tab:       { padding: '6px 16px', borderRadius: '20px', border: '1px solid #e5e7eb', background: '#fff', fontSize: '13px', fontWeight: '500', color: '#6b7280', cursor: 'pointer' },
+  tab:       { padding: '6px 16px', borderRadius: r.full, border: `1px solid ${c.gray200}`, background: c.surface, fontSize: '13px', fontWeight: '500', color: c.gray500, cursor: 'pointer' },
   tabActive: { background: ACCENT, color: '#fff', border: `1px solid ${ACCENT}` },
-  card:      { background: '#fff', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.07)' },
-  empty:     { padding: '48px', textAlign: 'center', color: '#9ca3af', fontSize: '14px' },
+  card:      { background: c.surface, borderRadius: r.xl, overflow: 'hidden', boxShadow: sh.sm },
+  empty:     { padding: '48px', textAlign: 'center', color: c.gray400, fontSize: '14px' },
   table:     { width: '100%', borderCollapse: 'collapse' },
-  th:        { padding: '10px 14px', fontSize: '11px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'left', borderBottom: '1px solid #f3f4f6', background: '#fafafa' },
-  tr:        { borderBottom: '1px solid #f9fafb' },
-  td:        { padding: '12px 14px', fontSize: '13px', color: '#374151' },
-  chip:      { padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600', display: 'inline-block' },
-  viewBtn:   { padding: '4px 12px', borderRadius: '6px', border: `1.5px solid ${ACCENT}`, color: ACCENT, background: '#fff', fontWeight: '600', fontSize: '11px', cursor: 'pointer' },
+  th:        { padding: '10px 14px', fontSize: '11px', fontWeight: '600', color: c.gray500, textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'left', borderBottom: `1px solid ${c.gray100}`, background: c.gray150 },
+  tr:        { borderBottom: `1px solid ${c.gray50}` },
+  td:        { padding: '12px 14px', fontSize: '13px', color: c.gray700 },
+  chip:      { padding: '3px 10px', borderRadius: r.full, fontSize: '11px', fontWeight: '600', display: 'inline-block' },
+  viewBtn:   { padding: '4px 12px', borderRadius: r.sm, border: `1.5px solid ${ACCENT}`, color: ACCENT, background: c.surface, fontWeight: '600', fontSize: '11px', cursor: 'pointer' },
   overlay:   { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
-  modal:     { background: '#fff', borderRadius: '16px', width: '600px', maxWidth: '95vw', maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' },
-  modalHeader:{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 24px', borderBottom: '1px solid #f3f4f6' },
-  modalTitle: { fontSize: '16px', fontWeight: '700', color: '#111827' },
-  closeBtn:   { background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', fontSize: '18px' },
+  modal:     { background: c.surface, borderRadius: r['2xl'], width: '600px', maxWidth: '95vw', maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: sh.modal },
+  modalHeader:{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 24px', borderBottom: `1px solid ${c.gray100}` },
+  modalTitle: { fontSize: '16px', fontWeight: '700', color: c.gray900 },
+  closeBtn:   { background: 'none', border: 'none', cursor: 'pointer', color: c.gray400, fontSize: '18px' },
   modalBody: { padding: '20px 24px', overflowY: 'auto' },
-  modalFooter:{ display: 'flex', gap: '10px', justifyContent: 'flex-end', padding: '14px 24px', borderTop: '1px solid #f3f4f6' },
-  cancelBtn: { padding: '8px 18px', borderRadius: '8px', border: '1px solid #e5e7eb', background: '#fff', color: '#374151', fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
-  submitBtn: { padding: '8px 20px', borderRadius: '8px', border: 'none', background: ACCENT, color: '#fff', fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
-  deleteBtn: { padding: '8px 18px', borderRadius: '8px', border: 'none', background: '#dc2626', color: '#fff', fontWeight: '600', fontSize: '13px', cursor: 'pointer', marginRight: 'auto' },
-  sectionTitle: { fontSize: '11px', fontWeight: '700', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '16px', marginBottom: '8px' },
-  vendorRow: { display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f9fafb' },
-  input:     { width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '13px', color: '#111827', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' },
-  formErr:   { background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '8px', padding: '10px', fontSize: '13px', marginBottom: '12px' },
-  addLineBtn:{ padding: '6px 14px', borderRadius: '6px', border: `1px dashed ${ACCENT}`, color: ACCENT, background: '#f0fdf4', fontSize: '12px', cursor: 'pointer', fontWeight: '600', marginBottom: '4px' },
-  removeBtn: { width: '32px', height: '32px', borderRadius: '6px', border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', cursor: 'pointer', fontWeight: '700', fontSize: '12px' },
-  vendorGrid:{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '4px' },
-  vendorCheck:{ display: 'flex', alignItems: 'center', padding: '6px 10px', borderRadius: '8px', border: '1.5px solid #e5e7eb', cursor: 'pointer', fontSize: '12px' },
-  inlineSelect:{ padding: '4px 8px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '12px', cursor: 'pointer' },
+  modalFooter:{ display: 'flex', gap: '10px', justifyContent: 'flex-end', padding: '14px 24px', borderTop: `1px solid ${c.gray100}` },
+  cancelBtn: { padding: '8px 18px', borderRadius: r.md, border: `1px solid ${c.gray200}`, background: c.surface, color: c.gray700, fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
+  submitBtn: { padding: '8px 20px', borderRadius: r.md, border: 'none', background: ACCENT, color: '#fff', fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
+  deleteBtn: { padding: '8px 18px', borderRadius: r.md, border: 'none', background: c.red, color: '#fff', fontWeight: '600', fontSize: '13px', cursor: 'pointer', marginRight: 'auto' },
+  sectionTitle: { fontSize: '11px', fontWeight: '700', color: c.gray500, textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '16px', marginBottom: '8px' },
+  vendorRow: { display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: `1px solid ${c.gray50}` },
+  input:     { width: '100%', padding: '8px 12px', borderRadius: r.md, border: `1px solid ${c.gray300}`, fontSize: '13px', color: c.gray900, outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' },
+  formErr:   { background: c.errorBg, border: `1px solid ${c.errorBorder}`, color: c.errorText, borderRadius: r.md, padding: '10px', fontSize: '13px', marginBottom: '12px' },
+  addLineBtn:{ padding: '6px 14px', borderRadius: r.sm, border: `1px dashed ${ACCENT}`, color: ACCENT, background: c.primaryBgSoft, fontSize: '12px', cursor: 'pointer', fontWeight: '600', marginBottom: '4px' },
+  removeBtn: { width: '32px', height: '32px', borderRadius: r.sm, border: `1px solid ${c.errorBorder}`, background: c.errorBg, color: c.red, cursor: 'pointer', fontWeight: '700', fontSize: '12px' },
+  inlineSelect:{ padding: '4px 8px', borderRadius: r.sm, border: `1px solid ${c.gray300}`, fontSize: '12px', cursor: 'pointer' },
 };
