@@ -78,9 +78,16 @@ router.post('/', (req, res) => {
   const { rfq_id, tax_rate = 18, delivery_days, notes, payment_terms, lines = [], status = 'Draft' } = req.body;
   if (!rfq_id) return res.status(400).json({ message: 'RFQ ID is required.' });
 
-  db.query('SELECT vendor_id FROM users WHERE id=?', [req.user.id], (err, uRows) => {
+  db.query(
+    `SELECT u.vendor_id, v.status AS vendor_status
+     FROM users u LEFT JOIN vendors v ON u.vendor_id = v.vendor_id
+     WHERE u.id = ?`,
+    [req.user.id],
+    (err, uRows) => {
     if (err || !uRows[0]?.vendor_id)
       return res.status(400).json({ message: 'Your account is not linked to a vendor profile.' });
+    if (uRows[0].vendor_status !== 'Active')
+      return res.status(403).json({ message: 'Your vendor account is pending admin approval. You cannot submit quotations yet.' });
     const vendorId = uRows[0].vendor_id;
 
     const subtotal = lines.reduce((s, l) => s + (parseFloat(l.unit_price) || 0) * (parseInt(l.quantity) || 1), 0);
