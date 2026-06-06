@@ -9,6 +9,7 @@ router.get('/', (req, res) => {
   const { status } = req.query;
   let sql = `
     SELECT r.rfq_id, r.title, r.category, r.deadline, r.status, r.created_date,
+      IFNULL(r.visibility,'public') AS visibility,
       CONCAT(u.first_name,' ',u.last_name) AS created_by_name,
       (SELECT COUNT(*) FROM rfq_vendors rv WHERE rv.rfq_id = r.rfq_id) AS vendor_count,
       (SELECT COUNT(*) FROM rfq_lines rl WHERE rl.rfq_id = r.rfq_id)   AS line_count,
@@ -19,10 +20,20 @@ router.get('/', (req, res) => {
   const params = [];
 
   if (req.user.role === 'vendor') {
+    if (!status) sql += ` AND r.status = 'Published'`;
+    // Only Active vendors can see RFQs
     sql += ` AND EXISTS (
+      SELECT 1 FROM vendors v JOIN users u ON u.vendor_id = v.vendor_id
+      WHERE u.id = ? AND v.status = 'Active'
+    )`;
+    params.push(req.user.id);
+    // Public RFQs visible to all; private only to assigned vendors
+    sql += ` AND (IFNULL(r.visibility,'public') = 'public' OR EXISTS (
       SELECT 1 FROM rfq_vendors rv
-      JOIN users uu ON rv.vendor_id = uu.vendor_id
-      WHERE rv.rfq_id = r.rfq_id AND uu.id = ?)`;
+      JOIN vendors v2 ON rv.vendor_id = v2.vendor_id
+      JOIN users u2 ON u2.vendor_id = v2.vendor_id
+      WHERE rv.rfq_id = r.rfq_id AND u2.id = ?
+    ))`;
     params.push(req.user.id);
   }
   if (status) { sql += ' AND r.status = ?'; params.push(status); }
@@ -83,12 +94,12 @@ router.post('/', (req, res) => {
   if (!['admin', 'procurement_officer'].includes(req.user.role))
     return res.status(403).json({ message: 'Not authorized.' });
 
-  const { title, category, deadline, description, lines = [], vendor_ids = [], status = 'Draft' } = req.body;
+  const { title, category, deadline, description, lines = [], vendor_ids = [], status = 'Draft', visibility = 'public' } = req.body;
   if (!title || !deadline) return res.status(400).json({ message: 'Title and deadline are required.' });
 
   db.query(
-    'INSERT INTO rfqs (title, category, description, created_by, deadline, status) VALUES (?,?,?,?,?,?)',
-    [title.trim(), category || null, description || null, req.user.id, deadline, status],
+    'INSERT INTO rfqs (title, category, description, created_by, deadline, status, visibility) VALUES (?,?,?,?,?,?,?)',
+    [title.trim(), category || null, description || null, req.user.id, deadline, status, visibility],
     (err, result) => {
       if (err) return res.status(500).json({ message: 'Database error.' });
       const rfqId = result.insertId;
