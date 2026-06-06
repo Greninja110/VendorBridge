@@ -94,6 +94,8 @@ router.post('/me', (req, res) => {
     if (!category?.trim())      return res.status(400).json({ message: 'Category is required.' });
     if (!gst_number?.trim())    return res.status(400).json({ message: 'GST number is required.' });
     if (!contact_phone?.trim()) return res.status(400).json({ message: 'Phone number is required.' });
+    if (contact_phone.replace(/\D/g, '').length !== 10)
+      return res.status(400).json({ message: 'Phone number must be exactly 10 digits.' });
 
     db.query('INSERT IGNORE INTO vendor_categories (name) VALUES (?)', [category.trim()], (e1) => {
       if (e1) return res.status(500).json({ message: 'Database error.' });
@@ -137,6 +139,8 @@ router.put('/me', (req, res) => {
     if (!category?.trim())      return res.status(400).json({ message: 'Category is required.' });
     if (!gst_number?.trim())    return res.status(400).json({ message: 'GST number is required.' });
     if (!contact_phone?.trim()) return res.status(400).json({ message: 'Phone number is required.' });
+    if (contact_phone.replace(/\D/g, '').length !== 10)
+      return res.status(400).json({ message: 'Phone number must be exactly 10 digits.' });
 
     db.query('INSERT IGNORE INTO vendor_categories (name) VALUES (?)', [category.trim()], (e1) => {
       if (e1) return res.status(500).json({ message: 'Database error.' });
