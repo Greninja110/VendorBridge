@@ -41,7 +41,10 @@ export default function VendorProfilePage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMsg(''); setErr(''); setSaving(true);
+    setMsg(''); setErr('');
+    if (form.contact_phone && form.contact_phone.replace(/\D/g, '').length !== 10)
+      return setErr('Phone number must be exactly 10 digits.');
+    setSaving(true);
     try {
       if (noProfile) {
         const { data } = await api.post('/api/vendors/me', form);

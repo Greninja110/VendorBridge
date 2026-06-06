@@ -39,6 +39,8 @@ export default function Register() {
     setError(''); setSuccess('');
     if (form.password !== form.confirm) return setError('Passwords do not match.');
     if (form.password.length < 6)       return setError('Password must be at least 6 characters.');
+    if (form.phone && form.phone.replace(/\D/g, '').length !== 10)
+      return setError('Phone number must be exactly 10 digits.');
 
     setLoading(true);
     try {

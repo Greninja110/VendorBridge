@@ -73,6 +73,8 @@ export default function VendorsPage() {
   const submitAdd = async (e) => {
     e.preventDefault();
     setFormError('');
+    if (form.contact_phone && form.contact_phone.replace(/\D/g, '').length !== 10)
+      return setFormError('Phone number must be exactly 10 digits.');
     setSaving(true);
     try {
       await api.post('/api/vendors', form);
@@ -102,6 +104,8 @@ export default function VendorsPage() {
   const submitEdit = async (e) => {
     e.preventDefault();
     setFormError('');
+    if (form.contact_phone && form.contact_phone.replace(/\D/g, '').length !== 10)
+      return setFormError('Phone number must be exactly 10 digits.');
     setSaving(true);
     try {
       await api.put(`/api/vendors/${viewVendor.vendor_id}`, form);
