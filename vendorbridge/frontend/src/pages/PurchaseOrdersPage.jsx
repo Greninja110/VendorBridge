@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { c, r, sh } from '../theme';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import Sidebar from './dashboards/Sidebar';
+import { fmtDate } from '../utils/date';
 
 const fmt = (n) => n != null ? `₹${Number(n).toLocaleString('en-IN')}` : '—';
 
@@ -75,7 +77,7 @@ export default function PurchaseOrdersPage() {
                       <td style={s.td}>{po.vendor_name}</td>
                       <td style={s.td}>{po.rfq_title || '—'}</td>
                       <td style={{ ...s.td, fontWeight: '600' }}>{fmt(po.total_amount)}</td>
-                      <td style={s.td}>{po.order_date}</td>
+                      <td style={s.td}>{fmtDate(po.order_date)}</td>
                       <td style={s.td}>
                         {po.invoice_count > 0
                           ? <span style={{ ...s.chip, background: '#dcfce7', color: '#15803d' }}>Generated</span>
@@ -126,7 +128,7 @@ export default function PurchaseOrdersPage() {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px', fontSize: '12px' }}>
                 <InfoKV k="PO Number"   v={detail.po_number} />
-                <InfoKV k="Order Date"  v={detail.order_date} />
+                <InfoKV k="Order Date"  v={fmtDate(detail.order_date)} />
                 <InfoKV k="Created by"  v={detail.created_by_name} />
                 <InfoKV k="RFQ"         v={detail.rfq_title || '—'} />
               </div>
@@ -178,29 +180,29 @@ function TotalRow({ k, v, bold }) {
 }
 
 const s = {
-  layout:    { display: 'flex', minHeight: '100vh', background: '#f3f4f6', fontFamily: 'Inter,system-ui,sans-serif' },
+  layout:    { display: 'flex', minHeight: '100vh', background: c.pageBg, fontFamily: "'Inter',system-ui,sans-serif" },
   body:      { flex: 1, padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: '18px', overflow: 'auto' },
   header:    { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' },
-  title:     { fontSize: '22px', fontWeight: '700', color: '#111827', margin: 0 },
-  subtitle:  { fontSize: '13px', color: '#6b7280', marginTop: '4px' },
-  outlineBtn:{ padding: '9px 18px', borderRadius: '8px', border: '1.5px solid #7c3aed', background: '#fff', color: '#7c3aed', fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
-  card:      { background: '#fff', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.07)' },
-  empty:     { padding: '48px', textAlign: 'center', color: '#9ca3af', fontSize: '14px' },
+  title:     { fontSize: '22px', fontWeight: '700', color: c.gray900, margin: 0 },
+  subtitle:  { fontSize: '13px', color: c.gray500, marginTop: '4px' },
+  outlineBtn:{ padding: '9px 18px', borderRadius: r.md, border: `1.5px solid ${c.purple}`, background: c.surface, color: c.purple, fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
+  card:      { background: c.surface, borderRadius: r.xl, overflow: 'hidden', boxShadow: sh.sm },
+  empty:     { padding: '48px', textAlign: 'center', color: c.gray400, fontSize: '14px' },
   table:     { width: '100%', borderCollapse: 'collapse' },
-  th:        { padding: '10px 14px', fontSize: '11px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase', textAlign: 'left', borderBottom: '1px solid #f3f4f6', background: '#fafafa' },
-  tr:        { borderBottom: '1px solid #f9fafb' },
-  td:        { padding: '12px 14px', fontSize: '13px', color: '#374151' },
-  chip:      { padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600', display: 'inline-block' },
-  viewBtn:   { padding: '4px 12px', borderRadius: '6px', border: '1.5px solid #039b15', color: '#039b15', background: '#fff', fontWeight: '600', fontSize: '11px', cursor: 'pointer' },
+  th:        { padding: '10px 14px', fontSize: '11px', fontWeight: '600', color: c.gray500, textTransform: 'uppercase', textAlign: 'left', borderBottom: `1px solid ${c.gray100}`, background: c.gray150 },
+  tr:        { borderBottom: `1px solid ${c.gray50}` },
+  td:        { padding: '12px 14px', fontSize: '13px', color: c.gray700 },
+  chip:      { padding: '3px 10px', borderRadius: r.full, fontSize: '11px', fontWeight: '600', display: 'inline-block' },
+  viewBtn:   { padding: '4px 12px', borderRadius: r.sm, border: `1.5px solid ${c.primary}`, color: c.primary, background: c.surface, fontWeight: '600', fontSize: '11px', cursor: 'pointer' },
   overlay:   { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
-  modal:     { background: '#fff', borderRadius: '16px', width: '600px', maxWidth: '95vw', maxHeight: '88vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' },
-  modalHeader:{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '18px 24px', borderBottom: '1px solid #f3f4f6' },
-  modalTitle: { fontSize: '11px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' },
-  closeBtn:   { background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', fontSize: '18px' },
+  modal:     { background: c.surface, borderRadius: r['2xl'], width: '600px', maxWidth: '95vw', maxHeight: '88vh', display: 'flex', flexDirection: 'column', boxShadow: sh.modal },
+  modalHeader:{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '18px 24px', borderBottom: `1px solid ${c.gray100}` },
+  modalTitle: { fontSize: '11px', fontWeight: '600', color: c.gray500, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' },
+  closeBtn:   { background: 'none', border: 'none', cursor: 'pointer', color: c.gray400, fontSize: '18px' },
   modalBody: { padding: '20px 24px', overflowY: 'auto' },
-  modalFooter:{ display: 'flex', justifyContent: 'flex-end', padding: '14px 24px', borderTop: '1px solid #f3f4f6' },
-  cancelBtn: { padding: '8px 18px', borderRadius: '8px', border: '1px solid #e5e7eb', background: '#fff', color: '#374151', fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
-  billBox:   { background: '#f9fafb', borderRadius: '8px', padding: '12px 14px' },
-  billTitle: { fontSize: '10px', fontWeight: '700', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' },
-  billText:  { fontSize: '13px', fontWeight: '600', color: '#111827' },
+  modalFooter:{ display: 'flex', justifyContent: 'flex-end', padding: '14px 24px', borderTop: `1px solid ${c.gray100}` },
+  cancelBtn: { padding: '8px 18px', borderRadius: r.md, border: `1px solid ${c.gray200}`, background: c.surface, color: c.gray700, fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
+  billBox:   { background: c.gray50, borderRadius: r.md, padding: '12px 14px' },
+  billTitle: { fontSize: '10px', fontWeight: '700', color: c.gray400, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' },
+  billText:  { fontSize: '13px', fontWeight: '600', color: c.gray900 },
 };

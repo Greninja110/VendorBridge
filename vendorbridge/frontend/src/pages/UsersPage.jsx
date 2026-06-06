@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { c, r, sh } from '../theme';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import Sidebar from './dashboards/Sidebar';
+import { fmtDateTime } from '../utils/date';
 
 const ROLE_LABELS = { admin: 'Admin', vendor: 'Vendor', procurement_officer: 'Procurement Officer', manager: 'Manager' };
 const ROLE_COLORS = {
@@ -125,8 +127,8 @@ export default function UsersPage() {
                           )}
                       </td>
                       <td style={s.td}>{u.country || <span style={{ color: '#d1d5db' }}>—</span>}</td>
-                      <td style={s.td}>{u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>
-                      <td style={s.td}>{u.last_login ? new Date(u.last_login).toLocaleDateString() : <span style={{ color: '#d1d5db' }}>Never</span>}</td>
+                      <td style={s.td}>{fmtDateTime(u.created_at)}</td>
+                      <td style={s.td}>{u.last_login ? fmtDateTime(u.last_login) : <span style={{ color: '#d1d5db' }}>Never</span>}</td>
                       <td style={s.td}>
                         {u.id !== me?.id && (
                           <button style={s.deleteBtn} disabled={busy === u.id} onClick={() => deleteUser(u.id, `${u.first_name} ${u.last_name}`)}>
@@ -155,26 +157,26 @@ function StatCard({ label, value, bg, color }) {
 }
 
 const s = {
-  layout:    { display: 'flex', minHeight: '100vh', background: '#f3f4f6', fontFamily: 'Inter,system-ui,sans-serif' },
+  layout:    { display: 'flex', minHeight: '100vh', background: c.pageBg, fontFamily: "'Inter',system-ui,sans-serif" },
   body:      { flex: 1, padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: '18px', overflow: 'auto' },
   header:    { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' },
-  title:     { fontSize: '22px', fontWeight: '700', color: '#111827', margin: 0 },
-  subtitle:  { fontSize: '13px', color: '#6b7280', marginTop: '4px' },
+  title:     { fontSize: '22px', fontWeight: '700', color: c.gray900, margin: 0 },
+  subtitle:  { fontSize: '13px', color: c.gray500, marginTop: '4px' },
   statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '14px' },
-  statCard:  { background: '#fff', borderRadius: '12px', padding: '16px 18px', boxShadow: '0 1px 3px rgba(0,0,0,0.07)' },
-  statBadge: { display: 'inline-block', padding: '3px 12px', borderRadius: '20px', fontWeight: '700', fontSize: '18px', marginBottom: '6px' },
-  statLabel: { fontSize: '12px', fontWeight: '600', color: '#6b7280' },
-  msgBox:    { background: '#dcfce7', border: '1px solid #bbf7d0', color: '#15803d', borderRadius: '8px', padding: '10px 16px', fontSize: '13px' },
+  statCard:  { background: c.surface, borderRadius: r.xl, padding: '16px 18px', boxShadow: sh.sm },
+  statBadge: { display: 'inline-block', padding: '3px 12px', borderRadius: r.full, fontWeight: '700', fontSize: '18px', marginBottom: '6px' },
+  statLabel: { fontSize: '12px', fontWeight: '600', color: c.gray500 },
+  msgBox:    { background: c.successBg, border: `1px solid ${c.successBorder}`, color: c.successText, borderRadius: r.md, padding: '10px 16px', fontSize: '13px' },
   tabRow:    { display: 'flex', gap: '8px', flexWrap: 'wrap' },
-  tab:       { padding: '6px 14px', borderRadius: '20px', border: '1px solid #e5e7eb', background: '#fff', fontSize: '12px', fontWeight: '500', color: '#6b7280', cursor: 'pointer' },
-  tabActive: { background: '#7c3aed', color: '#fff', border: '1px solid #7c3aed' },
-  card:      { background: '#fff', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.07)' },
-  empty:     { padding: '48px', textAlign: 'center', color: '#9ca3af', fontSize: '14px' },
+  tab:       { padding: '6px 14px', borderRadius: r.full, border: `1px solid ${c.gray200}`, background: c.surface, fontSize: '12px', fontWeight: '500', color: c.gray500, cursor: 'pointer' },
+  tabActive: { background: c.purple, color: '#fff', border: `1px solid ${c.purple}` },
+  card:      { background: c.surface, borderRadius: r.xl, overflow: 'hidden', boxShadow: sh.sm },
+  empty:     { padding: '48px', textAlign: 'center', color: c.gray400, fontSize: '14px' },
   table:     { width: '100%', borderCollapse: 'collapse' },
-  th:        { padding: '10px 14px', fontSize: '11px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase', textAlign: 'left', borderBottom: '1px solid #f3f4f6', background: '#fafafa' },
-  tr:        { borderBottom: '1px solid #f9fafb' },
-  td:        { padding: '11px 14px', fontSize: '13px', color: '#374151' },
-  chip:      { padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600', display: 'inline-block' },
-  roleSelect:{ padding: '3px 8px', borderRadius: '20px', border: 'none', fontSize: '11px', fontWeight: '600', cursor: 'pointer', outline: 'none' },
-  deleteBtn: { padding: '4px 12px', borderRadius: '6px', border: '1.5px solid #dc2626', color: '#dc2626', background: '#fff', fontWeight: '600', fontSize: '11px', cursor: 'pointer' },
+  th:        { padding: '10px 14px', fontSize: '11px', fontWeight: '600', color: c.gray500, textTransform: 'uppercase', textAlign: 'left', borderBottom: `1px solid ${c.gray100}`, background: c.gray150 },
+  tr:        { borderBottom: `1px solid ${c.gray50}` },
+  td:        { padding: '11px 14px', fontSize: '13px', color: c.gray700 },
+  chip:      { padding: '3px 10px', borderRadius: r.full, fontSize: '11px', fontWeight: '600', display: 'inline-block' },
+  roleSelect:{ padding: '3px 8px', borderRadius: r.full, border: 'none', fontSize: '11px', fontWeight: '600', cursor: 'pointer', outline: 'none' },
+  deleteBtn: { padding: '4px 12px', borderRadius: r.sm, border: `1.5px solid ${c.red}`, color: c.red, background: c.surface, fontWeight: '600', fontSize: '11px', cursor: 'pointer' },
 };

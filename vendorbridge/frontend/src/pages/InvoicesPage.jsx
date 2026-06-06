@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { c, r, sh } from '../theme';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import Sidebar from './dashboards/Sidebar';
+import { fmtDate } from '../utils/date';
 
 const fmt = (n) => n != null ? `₹${Number(n).toLocaleString('en-IN')}` : '—';
 const STATUS_COLORS = {
@@ -13,6 +15,7 @@ const STATUS_COLORS = {
 export default function InvoicesPage() {
   const { user }   = useAuth();
   const isAdmin    = user?.role === 'admin';
+  const canPay     = ['admin', 'procurement_officer'].includes(user?.role);
   const [invoices, setInvoices] = useState([]);
   const [loading,  setLoading]  = useState(true);
   const [detail,   setDetail]   = useState(null);
@@ -89,12 +92,12 @@ export default function InvoicesPage() {
                       <td style={{ ...s.td, fontFamily: 'monospace' }}>{inv.po_number}</td>
                       <td style={s.td}>{inv.vendor_name}</td>
                       <td style={{ ...s.td, fontWeight: '600' }}>{fmt(inv.total_amount)}</td>
-                      <td style={s.td}>{inv.invoice_date}</td>
+                      <td style={s.td}>{fmtDate(inv.invoice_date)}</td>
                       <td style={s.td}><span style={{ ...s.chip, ...STATUS_COLORS[inv.status] }}>{inv.status}</span></td>
                       <td style={s.td}>
                         <div style={{ display: 'flex', gap: '6px' }}>
                           <button style={s.viewBtn} onClick={() => openDetail(inv)}>View</button>
-                          {inv.status === 'Pending' && (
+                          {canPay && inv.status === 'Pending' && (
                             <button style={{ ...s.viewBtn, borderColor: '#15803d', color: '#15803d' }}
                               disabled={busyPay === inv.invoice_id}
                               onClick={() => markPaid(inv.invoice_id)}>
@@ -144,7 +147,7 @@ export default function InvoicesPage() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '8px', marginBottom: '16px', fontSize: '12px' }}>
                 <InfoKV k="Invoice #"    v={detail.invoice_number} />
                 <InfoKV k="PO Number"    v={detail.po_number} />
-                <InfoKV k="Invoice Date" v={detail.invoice_date} />
+                <InfoKV k="Invoice Date" v={fmtDate(detail.invoice_date)} />
               </div>
 
               {detail.lines?.length > 0 ? (
@@ -177,7 +180,7 @@ export default function InvoicesPage() {
                   <span style={{ fontSize: '13px', color: '#6b7280' }}>Status:</span>
                   <span style={{ ...s.chip, ...STATUS_COLORS[detail.status] }}>{detail.status}</span>
                 </div>
-                {detail.status === 'Pending' && (
+                {canPay && detail.status === 'Pending' && (
                   <button style={s.payBtn} disabled={busyPay === detail.invoice_id} onClick={() => markPaid(detail.invoice_id)}>
                     {busyPay === detail.invoice_id ? 'Processing...' : 'Mark as Paid'}
                   </button>
@@ -213,31 +216,31 @@ function TRow({ k, v, bold }) {
 }
 
 const s = {
-  layout:    { display: 'flex', minHeight: '100vh', background: '#f3f4f6', fontFamily: 'Inter,system-ui,sans-serif' },
+  layout:    { display: 'flex', minHeight: '100vh', background: c.pageBg, fontFamily: "'Inter',system-ui,sans-serif" },
   body:      { flex: 1, padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: '18px', overflow: 'auto' },
   header:    { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' },
-  title:     { fontSize: '22px', fontWeight: '700', color: '#111827', margin: 0 },
-  subtitle:  { fontSize: '13px', color: '#6b7280', marginTop: '4px' },
-  msgBox:    { background: '#dcfce7', border: '1px solid #bbf7d0', color: '#15803d', borderRadius: '8px', padding: '10px 16px', fontSize: '13px' },
-  card:      { background: '#fff', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.07)' },
-  empty:     { padding: '48px', textAlign: 'center', color: '#9ca3af', fontSize: '14px' },
+  title:     { fontSize: '22px', fontWeight: '700', color: c.gray900, margin: 0 },
+  subtitle:  { fontSize: '13px', color: c.gray500, marginTop: '4px' },
+  msgBox:    { background: c.successBg, border: `1px solid ${c.successBorder}`, color: c.successText, borderRadius: r.md, padding: '10px 16px', fontSize: '13px' },
+  card:      { background: c.surface, borderRadius: r.xl, overflow: 'hidden', boxShadow: sh.sm },
+  empty:     { padding: '48px', textAlign: 'center', color: c.gray400, fontSize: '14px' },
   table:     { width: '100%', borderCollapse: 'collapse' },
-  th:        { padding: '10px 14px', fontSize: '11px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase', textAlign: 'left', borderBottom: '1px solid #f3f4f6', background: '#fafafa' },
-  tr:        { borderBottom: '1px solid #f9fafb' },
-  td:        { padding: '12px 14px', fontSize: '13px', color: '#374151' },
-  chip:      { padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600', display: 'inline-block' },
-  viewBtn:   { padding: '4px 12px', borderRadius: '6px', border: '1.5px solid #039b15', color: '#039b15', background: '#fff', fontWeight: '600', fontSize: '11px', cursor: 'pointer' },
-  payBtn:    { padding: '8px 20px', borderRadius: '8px', border: 'none', background: '#15803d', color: '#fff', fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
+  th:        { padding: '10px 14px', fontSize: '11px', fontWeight: '600', color: c.gray500, textTransform: 'uppercase', textAlign: 'left', borderBottom: `1px solid ${c.gray100}`, background: c.gray150 },
+  tr:        { borderBottom: `1px solid ${c.gray50}` },
+  td:        { padding: '12px 14px', fontSize: '13px', color: c.gray700 },
+  chip:      { padding: '3px 10px', borderRadius: r.full, fontSize: '11px', fontWeight: '600', display: 'inline-block' },
+  viewBtn:   { padding: '4px 12px', borderRadius: r.sm, border: `1.5px solid ${c.primary}`, color: c.primary, background: c.surface, fontWeight: '600', fontSize: '11px', cursor: 'pointer' },
+  payBtn:    { padding: '8px 20px', borderRadius: r.md, border: 'none', background: c.primaryText, color: '#fff', fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
   overlay:   { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
-  modal:     { background: '#fff', borderRadius: '16px', width: '620px', maxWidth: '95vw', maxHeight: '88vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' },
-  modalHeader:{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '18px 24px', borderBottom: '1px solid #f3f4f6' },
-  modalSub:  { fontSize: '10px', fontWeight: '600', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '2px' },
-  modalTitle:{ fontSize: '16px', fontWeight: '700', color: '#7c3aed', fontFamily: 'monospace' },
-  closeBtn:  { background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', fontSize: '18px' },
+  modal:     { background: c.surface, borderRadius: r['2xl'], width: '620px', maxWidth: '95vw', maxHeight: '88vh', display: 'flex', flexDirection: 'column', boxShadow: sh.modal },
+  modalHeader:{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '18px 24px', borderBottom: `1px solid ${c.gray100}` },
+  modalSub:  { fontSize: '10px', fontWeight: '600', color: c.gray400, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '2px' },
+  modalTitle:{ fontSize: '16px', fontWeight: '700', color: c.purple, fontFamily: 'monospace' },
+  closeBtn:  { background: 'none', border: 'none', cursor: 'pointer', color: c.gray400, fontSize: '18px' },
   modalBody: { padding: '20px 24px', overflowY: 'auto' },
-  modalFooter:{ display: 'flex', justifyContent: 'flex-end', padding: '14px 24px', borderTop: '1px solid #f3f4f6' },
-  cancelBtn: { padding: '8px 18px', borderRadius: '8px', border: '1px solid #e5e7eb', background: '#fff', color: '#374151', fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
-  billBox:   { background: '#f9fafb', borderRadius: '8px', padding: '12px 14px' },
-  billTitle: { fontSize: '10px', fontWeight: '700', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' },
-  billText:  { fontSize: '13px', fontWeight: '600', color: '#111827' },
+  modalFooter:{ display: 'flex', justifyContent: 'flex-end', padding: '14px 24px', borderTop: `1px solid ${c.gray100}` },
+  cancelBtn: { padding: '8px 18px', borderRadius: r.md, border: `1px solid ${c.gray200}`, background: c.surface, color: c.gray700, fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
+  billBox:   { background: c.gray50, borderRadius: r.md, padding: '12px 14px' },
+  billTitle: { fontSize: '10px', fontWeight: '700', color: c.gray400, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' },
+  billText:  { fontSize: '13px', fontWeight: '600', color: c.gray900 },
 };
