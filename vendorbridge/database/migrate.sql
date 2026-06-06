@@ -30,3 +30,7 @@ ALTER TABLE purchase_order_lines
 -- vendors: switch active boolean to status enum (skip if already done)
 ALTER TABLE vendors
   ADD COLUMN IF NOT EXISTS status ENUM('Active','Pending','Blocked') NOT NULL DEFAULT 'Pending' AFTER address;
+
+-- rfqs: add visibility (public = all active vendors, private = assigned vendors only)
+ALTER TABLE rfqs
+  ADD COLUMN IF NOT EXISTS visibility ENUM('public','private') NOT NULL DEFAULT 'public' AFTER status;
