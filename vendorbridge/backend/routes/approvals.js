@@ -104,10 +104,19 @@ router.post('/:quotationId/reject', (req, res) => {
     const q = rows[0];
     db.query('INSERT INTO approvals (user_id,rfq_id,approved,remarks) VALUES (?,?,0,?)', [req.user.id, q.rfq_id, remarks || null], (e2) => {
       if (e2) return res.status(500).json({ message: 'Database error.' });
+      // Mark the selected quotation as rejected
       db.query('UPDATE quotations SET selected=0, status="Rejected" WHERE quotation_id=?', [q.quotation_id], () => {
-        db.query('UPDATE rfqs SET status="Published" WHERE rfq_id=?', [q.rfq_id], () => {
-          res.json({ message: 'Rejected. RFQ reopened for new quotations.' });
-        });
+        // Restore all OTHER quotations for this RFQ that were auto-rejected (when this one was selected)
+        // back to "Submitted" so those vendors can re-apply
+        db.query(
+          'UPDATE quotations SET status="Submitted" WHERE rfq_id=? AND quotation_id!=? AND status="Rejected"',
+          [q.rfq_id, q.quotation_id],
+          () => {
+            db.query('UPDATE rfqs SET status="Published" WHERE rfq_id=?', [q.rfq_id], () => {
+              res.json({ message: 'Rejected. Other quotations restored. RFQ reopened.' });
+            });
+          }
+        );
       });
     });
   });
