@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link, Navigate } from 'react-router-dom';
+import { useNavigate, Link, Navigate, useSearchParams } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { c, r, sh } from '../theme';
@@ -30,6 +30,8 @@ export default function Login() {
     const dest = ROLE_ROUTES[user.role] || '/';
     return <Navigate to={dest} replace />;
   }
+  const [searchParams]          = useSearchParams();
+  const sessionExpired          = searchParams.get('expired') === '1';
   const [form, setForm]         = useState({ email: '', password: '' });
   const [showPass, setShowPass] = useState(false);
   const [error, setError]       = useState('');
@@ -63,6 +65,11 @@ export default function Login() {
         <h2 style={styles.title}>Welcome back</h2>
         <p style={styles.subtitle}>Sign in to your account</p>
 
+        {sessionExpired && (
+          <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: '8px', padding: '10px 14px', marginBottom: '14px', fontSize: '13px', color: '#c2410c', fontWeight: '500' }}>
+            Your session has expired. Please sign in again.
+          </div>
+        )}
         {error && <div style={styles.error}>{error}</div>}
 
         <form onSubmit={submit} style={styles.form}>

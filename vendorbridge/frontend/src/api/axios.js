@@ -14,4 +14,19 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('vb_token');
+      localStorage.removeItem('vb_user');
+      // Avoid redirect loop if already on login page
+      if (!window.location.pathname.startsWith('/login')) {
+        window.location.replace('/login?expired=1');
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;
