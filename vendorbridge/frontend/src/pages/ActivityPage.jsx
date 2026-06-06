@@ -23,7 +23,7 @@ export default function ActivityPage() {
   useEffect(() => {
     api.get('/api/activity')
       .then(({ data }) => setItems(data))
-      .catch(() => setErr('Failed to load activity log.'))
+      .catch((e) => setErr(e.response?.data?.message || e.message || 'Failed to load activity log.'))
       .finally(() => setLoading(false));
   }, []);
 
