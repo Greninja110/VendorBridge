@@ -17,6 +17,9 @@ import ApprovalsPage from './pages/ApprovalsPage';
 import PurchaseOrdersPage from './pages/PurchaseOrdersPage';
 import InvoicesPage from './pages/InvoicesPage';
 import UsersPage from './pages/UsersPage';
+import ReportsPage from './pages/ReportsPage';
+import ActivityPage from './pages/ActivityPage';
+import VendorProfilePage from './pages/VendorProfilePage';
 
 function RoleRedirect() {
   const { user } = useAuth();
@@ -65,13 +68,22 @@ export default function App() {
             <ProtectedRoute allowedRoles={['admin','manager','procurement_officer']}><ApprovalsPage /></ProtectedRoute>
           } />
           <Route path="/purchase-orders" element={
-            <ProtectedRoute allowedRoles={['admin','procurement_officer','manager']}><PurchaseOrdersPage /></ProtectedRoute>
+            <ProtectedRoute allowedRoles={['admin','procurement_officer','manager','vendor']}><PurchaseOrdersPage /></ProtectedRoute>
           } />
           <Route path="/invoices" element={
-            <ProtectedRoute allowedRoles={['admin','procurement_officer','manager']}><InvoicesPage /></ProtectedRoute>
+            <ProtectedRoute allowedRoles={['admin','procurement_officer','manager','vendor']}><InvoicesPage /></ProtectedRoute>
           } />
           <Route path="/users" element={
             <ProtectedRoute allowedRoles={['admin']}><UsersPage /></ProtectedRoute>
+          } />
+          <Route path="/reports" element={
+            <ProtectedRoute allowedRoles={['admin','procurement_officer','manager']}><ReportsPage /></ProtectedRoute>
+          } />
+          <Route path="/activity" element={
+            <ProtectedRoute allowedRoles={['admin','procurement_officer','manager']}><ActivityPage /></ProtectedRoute>
+          } />
+          <Route path="/vendor-profile" element={
+            <ProtectedRoute allowedRoles={['vendor']}><VendorProfilePage /></ProtectedRoute>
           } />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
