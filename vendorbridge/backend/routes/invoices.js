@@ -6,8 +6,10 @@ router.use(auth);
 
 // GET /api/invoices
 router.get('/', (req, res) => {
-  db.query(
-    `SELECT i.invoice_id, i.invoice_number, i.invoice_date, i.total_amount, i.status,
+  const isVendor = req.user.role === 'vendor';
+  const params   = [];
+  let sql = `
+    SELECT i.invoice_id, i.invoice_number, i.invoice_date, i.total_amount, i.status,
        v.name AS vendor_name,
        po.po_number,
        CONCAT(u.first_name,' ',u.last_name) AS created_by_name
@@ -15,12 +17,16 @@ router.get('/', (req, res) => {
      JOIN vendors v ON i.vendor_id=v.vendor_id
      JOIN purchase_orders po ON i.po_id=po.po_id
      JOIN users u ON i.created_by=u.id
-     ORDER BY i.invoice_id DESC`,
-    (err, rows) => {
-      if (err) return res.status(500).json({ message: 'Database error.' });
-      res.json(rows);
-    }
-  );
+     WHERE 1=1`;
+  if (isVendor) {
+    sql += ` AND i.vendor_id = (SELECT vendor_id FROM users WHERE id = ? LIMIT 1)`;
+    params.push(req.user.id);
+  }
+  sql += ` ORDER BY i.invoice_id DESC`;
+  db.query(sql, params, (err, rows) => {
+    if (err) return res.status(500).json({ message: 'Database error.' });
+    res.json(rows);
+  });
 });
 
 // GET /api/invoices/stats

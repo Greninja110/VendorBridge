@@ -6,8 +6,10 @@ router.use(auth);
 
 // GET /api/purchase-orders
 router.get('/', (req, res) => {
-  db.query(
-    `SELECT po.po_id, po.po_number, po.order_date, po.total_amount, po.approved,
+  const isVendor = req.user.role === 'vendor';
+  const params   = [];
+  let sql = `
+    SELECT po.po_id, po.po_number, po.order_date, po.total_amount, po.approved,
        v.name AS vendor_name, v.gst_number AS vendor_gst,
        r.title AS rfq_title,
        CONCAT(u.first_name,' ',u.last_name) AS created_by_name,
@@ -17,12 +19,16 @@ router.get('/', (req, res) => {
      LEFT JOIN quotations q ON po.quotation_id=q.quotation_id
      LEFT JOIN rfqs r ON q.rfq_id=r.rfq_id
      LEFT JOIN users u ON po.created_by=u.id
-     ORDER BY po.po_id DESC`,
-    (err, rows) => {
-      if (err) return res.status(500).json({ message: 'Database error.' });
-      res.json(rows);
-    }
-  );
+     WHERE 1=1`;
+  if (isVendor) {
+    sql += ` AND po.vendor_id = (SELECT vendor_id FROM users WHERE id = ? LIMIT 1)`;
+    params.push(req.user.id);
+  }
+  sql += ` ORDER BY po.po_id DESC`;
+  db.query(sql, params, (err, rows) => {
+    if (err) return res.status(500).json({ message: 'Database error.' });
+    res.json(rows);
+  });
 });
 
 // GET /api/purchase-orders/stats
