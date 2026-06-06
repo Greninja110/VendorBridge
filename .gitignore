@@ -1,0 +1,5 @@
+VendorBridge MySQL Schema.pdf
+vendorbridge/node_modules/
+vendorbridge/backend/.env
+vendorbridge/frontend/.env
+vendorbridge/frontend/dist/
