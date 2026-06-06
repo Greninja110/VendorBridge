@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { c, r } from '../../theme';
 
 const ROLE_DASH = {
   admin:               '/dashboard/admin',
@@ -10,22 +11,34 @@ const ROLE_DASH = {
 };
 
 const NAV_ITEMS = [
-  { key: 'dashboard',       label: 'Dashboard',       icon: HomeIcon,      path: null },
-  { key: 'vendors',         label: 'Vendors',          icon: UsersIcon,     path: '/vendors' },
-  { key: 'rfqs',            label: "RFQ's",            icon: DocIcon,       path: '/rfqs' },
-  { key: 'quotations',      label: 'Quotations',       icon: ClipboardIcon, path: '/quotations' },
-  { key: 'approvals',       label: 'Approvals',        icon: CheckIcon,     path: '/approvals' },
-  { key: 'purchase_orders', label: 'Purchase Orders',  icon: CartIcon,      path: '/purchase-orders' },
-  { key: 'invoices',        label: 'Invoices',         icon: FileIcon,      path: '/invoices' },
-  { key: 'reports',         label: 'Reports',          icon: ChartIcon,     path: null },
-  { key: 'activity',        label: 'Activity',         icon: ActivityIcon,  path: null },
+  { key: 'dashboard',       label: 'Dashboard',       icon: HomeIcon,      path: null,                roles: null },
+  { key: 'vendors',         label: 'Vendors',          icon: UsersIcon,     path: '/vendors',          roles: null },
+  { key: 'rfqs',            label: "RFQ's",            icon: DocIcon,       path: '/rfqs',             roles: null },
+  { key: 'quotations',      label: 'Quotations',       icon: ClipboardIcon, path: '/quotations',       roles: null },
+  { key: 'approvals',       label: 'Approvals',        icon: CheckIcon,     path: '/approvals',        roles: ['admin','manager','procurement_officer'] },
+  { key: 'purchase_orders', label: 'Purchase Orders',  icon: CartIcon,      path: '/purchase-orders',  roles: null },
+  { key: 'invoices',        label: 'Invoices',         icon: FileIcon,      path: '/invoices',         roles: null },
+  { key: 'reports',         label: 'Reports',          icon: ChartIcon,     path: '/reports',          roles: ['admin','manager','procurement_officer'] },
+  { key: 'activity',        label: 'Activity',         icon: ActivityIcon,  path: '/activity',         roles: ['admin','manager','procurement_officer'] },
+  { key: 'profile',         label: 'My Profile',       icon: ProfileIcon,   path: '/vendor-profile',   roles: ['vendor'] },
 ];
 
 export default function Sidebar({ active = 'dashboard' }) {
   const { user, logout } = useAuth();
   const navigate  = useNavigate();
   const location  = useLocation();
-  const [hovered, setHovered] = useState(null);
+  const [hovered,   setHovered]   = useState(null);
+  const [collapsed, setCollapsed] = useState(() => {
+    try { return localStorage.getItem('vb_sidebar') === '1'; } catch { return false; }
+  });
+
+  const toggle = () => {
+    setCollapsed(prev => {
+      const next = !prev;
+      try { localStorage.setItem('vb_sidebar', next ? '1' : '0'); } catch {}
+      return next;
+    });
+  };
 
   const handleLogout = () => { logout(); navigate('/login'); };
 
@@ -35,43 +48,59 @@ export default function Sidebar({ active = 'dashboard' }) {
     } else if (item.path) {
       navigate(item.path);
     }
-    // items without a path are not yet implemented — do nothing
   };
 
-  // derive active key from current path
   const currentActive = (() => {
     const p = location.pathname;
-    if (p === '/vendors') return 'vendors';
-    if (p.startsWith('/rfqs')) return 'rfqs';
-    if (p.startsWith('/quotations')) return 'quotations';
-    if (p.startsWith('/approvals')) return 'approvals';
+    if (p === '/vendors')              return 'vendors';
+    if (p.startsWith('/rfqs'))         return 'rfqs';
+    if (p.startsWith('/quotations'))   return 'quotations';
+    if (p.startsWith('/approvals'))    return 'approvals';
     if (p.startsWith('/purchase-orders')) return 'purchase_orders';
-    if (p.startsWith('/invoices')) return 'invoices';
-    if (p.startsWith('/reports')) return 'reports';
-    if (p.startsWith('/activity')) return 'activity';
-    if (p.startsWith('/dashboard')) return 'dashboard';
+    if (p.startsWith('/invoices'))     return 'invoices';
+    if (p.startsWith('/reports'))      return 'reports';
+    if (p.startsWith('/activity'))     return 'activity';
+    if (p.startsWith('/vendor-profile')) return 'profile';
+    if (p.startsWith('/dashboard'))    return 'dashboard';
     return active;
   })();
 
+  const W = collapsed ? '68px' : '224px';
+
   return (
-    <aside style={s.sidebar}>
-      <div style={s.brand}>
-        <div style={s.logoBox}>VB</div>
-        <span style={s.brandName}>VendorBridge</span>
+    <aside style={{ ...s.sidebar, width: W, minWidth: W }}>
+
+      {/* ── Brand / Toggle ────────────────────────────── */}
+      <div style={{ ...s.brand, justifyContent: collapsed ? 'center' : 'space-between' }}>
+        {!collapsed && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
+            <div style={s.logoBox}>VB</div>
+            <span style={s.brandName}>VendorBridge</span>
+          </div>
+        )}
+        <button
+          onClick={toggle}
+          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          style={s.hamburger}
+        >
+          {collapsed ? <MenuOpenIcon /> : <MenuCloseIcon />}
+        </button>
       </div>
 
+      {/* ── Nav items ─────────────────────────────────── */}
       <nav style={s.nav}>
-        {NAV_ITEMS.map((item) => {
-          const isActive  = currentActive === item.key;
-          const isHover   = hovered === item.key;
-          const hasRoute  = item.key === 'dashboard' || !!item.path;
-          const Icon      = item.icon;
+        {NAV_ITEMS.filter(item => !item.roles || item.roles.includes(user?.role)).map((item) => {
+          const isActive = currentActive === item.key;
+          const isHover  = hovered === item.key;
+          const hasRoute = item.key === 'dashboard' || !!item.path;
+          const Icon     = item.icon;
           return (
             <div
               key={item.key}
-              title={!hasRoute ? 'Coming soon' : undefined}
+              title={collapsed ? item.label : (!hasRoute ? 'Coming soon' : undefined)}
               style={{
                 ...s.navItem,
+                justifyContent: collapsed ? 'center' : 'flex-start',
                 ...(isActive ? s.navActive : isHover ? s.navHover : {}),
                 ...(!hasRoute ? { opacity: 0.45, cursor: 'default' } : { cursor: 'pointer' }),
               }}
@@ -80,24 +109,46 @@ export default function Sidebar({ active = 'dashboard' }) {
               onMouseLeave={() => setHovered(null)}
             >
               <Icon active={isActive} />
-              <span style={{ ...s.navLabel, ...(isActive ? { color: '#fff', fontWeight: '600' } : {}) }}>
-                {item.label}
-              </span>
+              {!collapsed && (
+                <span style={{ ...s.navLabel, ...(isActive ? { color: '#fff', fontWeight: '600' } : {}) }}>
+                  {item.label}
+                </span>
+              )}
+              {/* Active indicator dot when collapsed */}
+              {collapsed && isActive && (
+                <span style={{ position: 'absolute', right: '6px', width: '4px', height: '4px', borderRadius: '50%', background: c.primary }} />
+              )}
             </div>
           );
         })}
       </nav>
 
-      <div style={s.footer}>
-        <div style={s.avatarRow}>
-          <div style={s.avatar}>{user?.name?.[0]?.toUpperCase() || 'U'}</div>
-          <div style={s.userInfo}>
-            <span style={s.userName}>{user?.name}</span>
-            <span style={s.userRole}>{formatRole(user?.role)}</span>
+      {/* ── Footer ────────────────────────────────────── */}
+      <div style={{ ...s.footer, alignItems: collapsed ? 'center' : 'stretch' }}>
+        {collapsed ? (
+          /* Collapsed: just avatar with tooltip */
+          <div
+            title={`${user?.name} · ${formatRole(user?.role)}`}
+            style={{ ...s.avatar, margin: '0 auto 8px', cursor: 'default' }}
+          >
+            {user?.name?.[0]?.toUpperCase() || 'U'}
           </div>
-        </div>
-        <button onClick={handleLogout} style={s.logoutBtn}>
-          <LogoutIcon /> Logout
+        ) : (
+          <div style={s.avatarRow}>
+            <div style={s.avatar}>{user?.name?.[0]?.toUpperCase() || 'U'}</div>
+            <div style={s.userInfo}>
+              <span style={s.userName}>{user?.name}</span>
+              <span style={s.userRole}>{formatRole(user?.role)}</span>
+            </div>
+          </div>
+        )}
+        <button
+          onClick={handleLogout}
+          title="Logout"
+          style={{ ...s.logoutBtn, justifyContent: collapsed ? 'center' : 'flex-start', padding: collapsed ? '7px' : '7px 10px' }}
+        >
+          <LogoutIcon />
+          {!collapsed && <span>Logout</span>}
         </button>
       </div>
     </aside>
@@ -111,7 +162,7 @@ function formatRole(role) {
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 const ip = (active) => ({
-  width: '16', height: '16', viewBox: '0 0 24 24', fill: 'none',
+  width: '17', height: '17', viewBox: '0 0 24 24', fill: 'none',
   stroke: active ? '#fff' : '#9ca3af', strokeWidth: '2',
   strokeLinecap: 'round', strokeLinejoin: 'round',
   style: { flexShrink: 0 },
@@ -144,25 +195,71 @@ function ChartIcon({ active }) {
 function ActivityIcon({ active }) {
   return <svg {...ip(active)}><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>;
 }
+function ProfileIcon({ active }) {
+  return <svg {...ip(active)}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
+}
 function LogoutIcon() {
   return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>;
 }
+function MenuCloseIcon() {
+  return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>;
+}
+function MenuOpenIcon() {
+  return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>;
+}
 
 const s = {
-  sidebar:   { width: '220px', minHeight: '100vh', background: '#0a1d17', display: 'flex', flexDirection: 'column', flexShrink: 0 },
-  brand:     { display: 'flex', alignItems: 'center', gap: '10px', padding: '20px 16px 16px', borderBottom: '1px solid #1a3a2a' },
-  logoBox:   { width: '32px', height: '32px', borderRadius: '8px', background: 'linear-gradient(135deg,#039b15,#056715)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: '700', fontSize: '12px', flexShrink: 0 },
-  brandName: { color: '#fff', fontWeight: '700', fontSize: '15px' },
-  nav:       { flex: 1, padding: '12px 8px', display: 'flex', flexDirection: 'column', gap: '2px' },
-  navItem:   { display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 10px', borderRadius: '8px', transition: 'background 0.15s' },
+  sidebar:   {
+    minHeight: '100vh', background: c.sidebar,
+    display: 'flex', flexDirection: 'column', flexShrink: 0,
+    transition: 'width 0.22s ease, min-width 0.22s ease',
+    overflow: 'hidden',
+  },
+  brand:     {
+    display: 'flex', alignItems: 'center', gap: '10px',
+    padding: '16px 12px', borderBottom: `1px solid ${c.sidebarBorder}`,
+    minHeight: '60px',
+  },
+  logoBox:   {
+    width: '32px', height: '32px', borderRadius: r.md, flexShrink: 0,
+    background: `linear-gradient(135deg,${c.primary},${c.primaryDark})`,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    color: '#fff', fontWeight: '700', fontSize: '12px',
+  },
+  brandName: { color: '#fff', fontWeight: '700', fontSize: '15px', whiteSpace: 'nowrap' },
+  hamburger: {
+    background: 'none', border: 'none', cursor: 'pointer',
+    padding: '4px', borderRadius: r.sm, display: 'flex', alignItems: 'center',
+    flexShrink: 0,
+    transition: 'background 0.15s',
+  },
+  nav:       { flex: 1, padding: '10px 8px', display: 'flex', flexDirection: 'column', gap: '2px', overflowY: 'auto' },
+  navItem:   {
+    position: 'relative',
+    display: 'flex', alignItems: 'center', gap: '10px',
+    padding: '9px 10px', borderRadius: r.md,
+    transition: 'background 0.15s',
+    whiteSpace: 'nowrap',
+  },
   navActive: { background: 'rgba(3,155,21,0.25)' },
-  navHover:  { background: 'rgba(255,255,255,0.05)' },
-  navLabel:  { color: '#9ca3af', fontSize: '13px', fontWeight: '500' },
-  footer:    { padding: '12px 12px 16px', borderTop: '1px solid #1a3a2a' },
-  avatarRow: { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' },
-  avatar:    { width: '32px', height: '32px', borderRadius: '50%', background: 'linear-gradient(135deg,#039b15,#056715)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: '700', fontSize: '13px', flexShrink: 0 },
-  userInfo:  { display: 'flex', flexDirection: 'column', minWidth: 0 },
+  navHover:  { background: 'rgba(255,255,255,0.06)' },
+  navLabel:  { color: c.gray400, fontSize: '13px', fontWeight: '500' },
+  footer:    { padding: '10px 10px 14px', borderTop: `1px solid ${c.sidebarBorder}`, display: 'flex', flexDirection: 'column', gap: '8px' },
+  avatarRow: { display: 'flex', alignItems: 'center', gap: '10px' },
+  avatar:    {
+    width: '32px', height: '32px', borderRadius: r.full, flexShrink: 0,
+    background: `linear-gradient(135deg,${c.primary},${c.primaryDark})`,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    color: '#fff', fontWeight: '700', fontSize: '13px',
+  },
+  userInfo:  { display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1 },
   userName:  { color: '#e5e7eb', fontSize: '12px', fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
-  userRole:  { color: '#6b7280', fontSize: '11px' },
-  logoutBtn: { display: 'flex', alignItems: 'center', gap: '6px', width: '100%', padding: '7px 10px', background: 'rgba(255,255,255,0.04)', border: '1px solid #1a3a2a', borderRadius: '7px', color: '#9ca3af', fontSize: '12px', cursor: 'pointer', fontWeight: '500' },
+  userRole:  { color: c.gray500, fontSize: '11px', whiteSpace: 'nowrap' },
+  logoutBtn: {
+    display: 'flex', alignItems: 'center', gap: '6px',
+    width: '100%', padding: '7px 10px',
+    background: 'rgba(255,255,255,0.04)', border: `1px solid ${c.sidebarBorder}`,
+    borderRadius: '7px', color: c.gray400, fontSize: '12px',
+    cursor: 'pointer', fontWeight: '500', transition: 'background 0.15s',
+  },
 };
