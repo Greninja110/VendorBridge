@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { c, r, sh } from '../theme';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import Sidebar from './dashboards/Sidebar';
@@ -402,54 +403,54 @@ function SearchIcon() {
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 const s = {
-  layout:      { display: 'flex', minHeight: '100vh', background: '#f3f4f6', fontFamily: 'Inter,system-ui,sans-serif' },
+  layout:      { display: 'flex', minHeight: '100vh', background: c.pageBg, fontFamily: "'Inter',system-ui,sans-serif" },
   body:        { flex: 1, padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: '18px', overflow: 'auto' },
   header:      { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' },
-  title:       { fontSize: '22px', fontWeight: '700', color: '#111827', margin: 0 },
-  subtitle:    { fontSize: '13px', color: '#6b7280', marginTop: '4px' },
-  addBtn:      { padding: '9px 18px', borderRadius: '8px', border: 'none', background: '#039b15', color: '#fff', fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
+  title:       { fontSize: '22px', fontWeight: '700', color: c.gray900, margin: 0 },
+  subtitle:    { fontSize: '13px', color: c.gray500, marginTop: '4px' },
+  addBtn:      { padding: '9px 18px', borderRadius: r.md, border: 'none', background: c.primary, color: '#fff', fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
 
   searchWrap:  { position: 'relative', display: 'flex', alignItems: 'center' },
-  searchInput: { width: '100%', padding: '10px 40px', borderRadius: '10px', border: '1px solid #e5e7eb', background: '#fff', fontSize: '13px', color: '#111827', outline: 'none', boxSizing: 'border-box' },
-  clearBtn:    { position: 'absolute', right: '12px', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', fontSize: '14px' },
+  searchInput: { width: '100%', padding: '10px 40px', borderRadius: r.lg, border: `1px solid ${c.gray200}`, background: c.surface, fontSize: '13px', color: c.gray900, outline: 'none', boxSizing: 'border-box' },
+  clearBtn:    { position: 'absolute', right: '12px', background: 'none', border: 'none', cursor: 'pointer', color: c.gray400, fontSize: '14px' },
 
   tabRow:      { display: 'flex', gap: '8px' },
-  tab:         { padding: '6px 16px', borderRadius: '20px', border: '1px solid #e5e7eb', background: '#fff', fontSize: '13px', fontWeight: '500', color: '#6b7280', cursor: 'pointer' },
-  tabActive:   { background: '#039b15', color: '#fff', border: '1px solid #039b15' },
+  tab:         { padding: '6px 16px', borderRadius: r.full, border: `1px solid ${c.gray200}`, background: c.surface, fontSize: '13px', fontWeight: '500', color: c.gray500, cursor: 'pointer' },
+  tabActive:   { background: c.primary, color: '#fff', border: `1px solid ${c.primary}` },
 
-  card:        { background: '#fff', borderRadius: '12px', padding: '0', boxShadow: '0 1px 3px rgba(0,0,0,0.07)', overflow: 'hidden' },
-  errorBox:    { padding: '14px 20px', background: '#fef2f2', color: '#dc2626', fontSize: '13px' },
-  emptyState:  { padding: '48px', textAlign: 'center', color: '#9ca3af', fontSize: '14px' },
+  card:        { background: c.surface, borderRadius: r.xl, padding: '0', boxShadow: sh.sm, overflow: 'hidden' },
+  errorBox:    { padding: '14px 20px', background: c.errorBg, color: c.errorText, fontSize: '13px' },
+  emptyState:  { padding: '48px', textAlign: 'center', color: c.gray400, fontSize: '14px' },
 
   table:       { width: '100%', borderCollapse: 'collapse' },
-  th:          { padding: '12px 16px', fontSize: '11px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'left', borderBottom: '1px solid #f3f4f6', background: '#fafafa' },
-  tr:          { borderBottom: '1px solid #f9fafb' },
-  td:          { padding: '13px 16px', fontSize: '13px', color: '#374151' },
-  na:          { color: '#d1d5db' },
+  th:          { padding: '12px 16px', fontSize: '11px', fontWeight: '600', color: c.gray500, textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'left', borderBottom: `1px solid ${c.gray100}`, background: c.gray150 },
+  tr:          { borderBottom: `1px solid ${c.gray50}` },
+  td:          { padding: '13px 16px', fontSize: '13px', color: c.gray700 },
+  na:          { color: c.gray300 },
 
-  chip:        { padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600', display: 'inline-block' },
-  statusSelect:{ padding: '3px 8px', borderRadius: '20px', fontSize: '11px', fontWeight: '600', border: 'none', cursor: 'pointer', outline: 'none' },
-  viewBtn:     { padding: '5px 14px', borderRadius: '6px', border: '1.5px solid #039b15', color: '#039b15', background: '#fff', fontWeight: '600', fontSize: '12px', cursor: 'pointer' },
-  deleteBtn:   { padding: '5px 14px', borderRadius: '6px', border: '1.5px solid #dc2626', color: '#dc2626', background: '#fff', fontWeight: '600', fontSize: '12px', cursor: 'pointer' },
+  chip:        { padding: '3px 10px', borderRadius: r.full, fontSize: '11px', fontWeight: '600', display: 'inline-block' },
+  statusSelect:{ padding: '3px 8px', borderRadius: r.full, fontSize: '11px', fontWeight: '600', border: 'none', cursor: 'pointer', outline: 'none' },
+  viewBtn:     { padding: '5px 14px', borderRadius: r.sm, border: `1.5px solid ${c.primary}`, color: c.primary, background: c.surface, fontWeight: '600', fontSize: '12px', cursor: 'pointer' },
+  deleteBtn:   { padding: '5px 14px', borderRadius: r.sm, border: `1.5px solid ${c.red}`, color: c.red, background: c.surface, fontWeight: '600', fontSize: '12px', cursor: 'pointer' },
 
   overlay:     { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
-  modal:       { background: '#fff', borderRadius: '16px', width: '520px', maxWidth: '95vw', maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' },
-  modalHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', borderBottom: '1px solid #f3f4f6' },
-  modalTitle:  { fontSize: '16px', fontWeight: '700', color: '#111827' },
-  closeBtn:    { background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', fontSize: '18px', lineHeight: 1 },
+  modal:       { background: c.surface, borderRadius: r['2xl'], width: '520px', maxWidth: '95vw', maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: sh.modal },
+  modalHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', borderBottom: `1px solid ${c.gray100}` },
+  modalTitle:  { fontSize: '16px', fontWeight: '700', color: c.gray900 },
+  closeBtn:    { background: 'none', border: 'none', cursor: 'pointer', color: c.gray400, fontSize: '18px', lineHeight: 1 },
   modalBody:   { padding: '20px 24px', overflowY: 'auto' },
-  modalFooter: { display: 'flex', gap: '10px', alignItems: 'center', padding: '16px 24px', borderTop: '1px solid #f3f4f6' },
+  modalFooter: { display: 'flex', gap: '10px', alignItems: 'center', padding: '16px 24px', borderTop: `1px solid ${c.gray100}` },
 
-  formError:   { background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '8px', padding: '10px 14px', fontSize: '13px', marginBottom: '12px' },
-  input:       { padding: '9px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '13px', color: '#111827', outline: 'none', width: '100%', boxSizing: 'border-box', fontFamily: 'inherit' },
+  formError:   { background: c.errorBg, border: `1px solid ${c.errorBorder}`, color: c.errorText, borderRadius: r.md, padding: '10px 14px', fontSize: '13px', marginBottom: '12px' },
+  input:       { padding: '9px 12px', borderRadius: r.md, border: `1px solid ${c.gray300}`, fontSize: '13px', color: c.gray900, outline: 'none', width: '100%', boxSizing: 'border-box', fontFamily: 'inherit' },
 
-  cancelBtn:   { padding: '8px 18px', borderRadius: '8px', border: '1px solid #e5e7eb', background: '#fff', color: '#374151', fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
-  submitBtn:   { padding: '8px 20px', borderRadius: '8px', border: 'none', background: '#039b15', color: '#fff', fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
-  editBtn:     { padding: '8px 18px', borderRadius: '8px', border: '1px solid #2563eb', background: '#fff', color: '#2563eb', fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
-  deleteBtnModal: { padding: '8px 18px', borderRadius: '8px', border: 'none', background: '#dc2626', color: '#fff', fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
-  statusSelectModal: { padding: '6px 10px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '13px', color: '#374151', outline: 'none', cursor: 'pointer' },
+  cancelBtn:   { padding: '8px 18px', borderRadius: r.md, border: `1px solid ${c.gray200}`, background: c.surface, color: c.gray700, fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
+  submitBtn:   { padding: '8px 20px', borderRadius: r.md, border: 'none', background: c.primary, color: '#fff', fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
+  editBtn:     { padding: '8px 18px', borderRadius: r.md, border: `1px solid ${c.blue}`, background: c.surface, color: c.blue, fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
+  deleteBtnModal: { padding: '8px 18px', borderRadius: r.md, border: 'none', background: c.red, color: '#fff', fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
+  statusSelectModal: { padding: '6px 10px', borderRadius: r.md, border: `1px solid ${c.gray300}`, fontSize: '13px', color: c.gray700, outline: 'none', cursor: 'pointer' },
 
-  detailRow:   { display: 'flex', padding: '10px 0', borderBottom: '1px solid #f9fafb' },
-  detailKey:   { width: '130px', fontSize: '12px', fontWeight: '600', color: '#6b7280', flexShrink: 0 },
-  detailVal:   { fontSize: '13px', color: '#111827', flex: 1 },
+  detailRow:   { display: 'flex', padding: '10px 0', borderBottom: `1px solid ${c.gray50}` },
+  detailKey:   { width: '130px', fontSize: '12px', fontWeight: '600', color: c.gray500, flexShrink: 0 },
+  detailVal:   { fontSize: '13px', color: c.gray900, flex: 1 },
 };
