@@ -20,14 +20,15 @@ export default function InvoicesPage() {
   const [loading,  setLoading]  = useState(true);
   const [detail,   setDetail]   = useState(null);
   const [busyPay,  setBusyPay]  = useState(null);
+  const [busyPdf,  setBusyPdf]  = useState(null);
   const [msg,      setMsg]      = useState('');
 
-  const fetch = () => {
+  const loadInvoices = () => {
     setLoading(true);
     api.get('/api/invoices').then(({ data }) => setInvoices(data)).catch(() => {}).finally(() => setLoading(false));
   };
 
-  useEffect(() => { fetch(); }, []);
+  useEffect(() => { loadInvoices(); }, []);
 
   const openDetail = (inv) => {
     api.get(`/api/invoices/${inv.invoice_id}`).then(({ data }) => setDetail(data)).catch(() => {});
@@ -38,7 +39,7 @@ export default function InvoicesPage() {
     try {
       await api.patch(`/api/invoices/${invId}/cancel`);
       setMsg('Invoice cancelled.');
-      fetch();
+      loadInvoices();
       if (detail?.invoice_id === invId) setDetail({ ...detail, status: 'Cancelled' });
     } catch (e) { setMsg(e.response?.data?.message || 'Error.'); }
   };
@@ -48,7 +49,7 @@ export default function InvoicesPage() {
     try {
       await api.delete(`/api/invoices/${invId}`);
       setDetail(null);
-      fetch();
+      loadInvoices();
     } catch (e) { setMsg(e.response?.data?.message || 'Error.'); }
   };
 
@@ -57,10 +58,26 @@ export default function InvoicesPage() {
     try {
       await api.patch(`/api/invoices/${invId}/mark-paid`);
       setMsg('Invoice marked as paid.');
-      fetch();
+      loadInvoices();
       if (detail?.invoice_id === invId) setDetail({ ...detail, status: 'Paid' });
     } catch (e) { setMsg(e.response?.data?.message || 'Error.'); }
     finally { setBusyPay(null); }
+  };
+
+  const downloadPdf = async (invId, invNumber) => {
+    setBusyPdf(invId);
+    try {
+      const resp = await api.get(`/api/invoices/${invId}/pdf`, { responseType: 'blob' });
+      const url  = URL.createObjectURL(resp.data);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = `Invoice_${invNumber || invId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) { setMsg(e.response?.data?.message || e.message || 'PDF download failed.'); }
+    finally { setBusyPdf(null); }
   };
 
   return (
@@ -95,13 +112,21 @@ export default function InvoicesPage() {
                       <td style={s.td}>{fmtDate(inv.invoice_date)}</td>
                       <td style={s.td}><span style={{ ...s.chip, ...STATUS_COLORS[inv.status] }}>{inv.status}</span></td>
                       <td style={s.td}>
-                        <div style={{ display: 'flex', gap: '6px' }}>
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                           <button style={s.viewBtn} onClick={() => openDetail(inv)}>View</button>
                           {canPay && inv.status === 'Pending' && (
                             <button style={{ ...s.viewBtn, borderColor: '#15803d', color: '#15803d' }}
                               disabled={busyPay === inv.invoice_id}
                               onClick={() => markPaid(inv.invoice_id)}>
                               {busyPay === inv.invoice_id ? '...' : 'Mark Paid'}
+                            </button>
+                          )}
+                          {['Paid', 'Pending'].includes(inv.status) && (
+                            <button
+                              style={{ ...s.viewBtn, borderColor: '#7c3aed', color: '#7c3aed' }}
+                              disabled={busyPdf === inv.invoice_id}
+                              onClick={() => downloadPdf(inv.invoice_id, inv.invoice_number)}>
+                              {busyPdf === inv.invoice_id ? '...' : 'PDF'}
                             </button>
                           )}
                           {isAdmin && inv.status === 'Pending' && (
@@ -190,6 +215,14 @@ export default function InvoicesPage() {
             <div style={s.modalFooter}>
               {isAdmin && detail.status === 'Pending' && (
                 <button style={{ ...s.cancelBtn, borderColor: '#f59e0b', color: '#f59e0b', marginRight: 'auto' }} onClick={() => cancelInvoice(detail.invoice_id)}>Cancel Invoice</button>
+              )}
+              {['Paid', 'Pending'].includes(detail.status) && (
+                <button
+                  style={{ padding: '8px 18px', borderRadius: '8px', border: 'none', background: '#7c3aed', color: '#fff', fontWeight: '600', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  disabled={busyPdf === detail.invoice_id}
+                  onClick={() => downloadPdf(detail.invoice_id, detail.invoice_number)}>
+                  {busyPdf === detail.invoice_id ? 'Generating...' : '⬇ Download PDF'}
+                </button>
               )}
               {isAdmin && (
                 <button style={{ padding: '8px 18px', borderRadius: '8px', border: 'none', background: '#dc2626', color: '#fff', fontWeight: '600', fontSize: '13px', cursor: 'pointer' }} onClick={() => deleteInvoice(detail.invoice_id)}>Delete</button>
