@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { c, r, sh } from '../theme';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import Sidebar from './dashboards/Sidebar';
+import { fmtDate } from '../utils/date';
 
 const fmt = (n) => n != null ? `₹${Number(n).toLocaleString('en-IN')}` : '—';
 const EMPTY_LINE = { item_description: '', quantity: 1, unit_price: 0, unit: 'NOS' };
@@ -10,6 +12,9 @@ const EMPTY_LINE = { item_description: '', quantity: 1, unit_price: 0, unit: 'NO
 export default function QuotationsPage() {
   const { user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
+  const [profileOk,     setProfileOk]     = useState(true);
+  const [vendorStatus,  setVendorStatus]  = useState('Active'); // 'Pending' | 'Active' | 'Blocked'
   const rfqFilter = new URLSearchParams(location.search).get('rfq_id');
 
   const isVendor   = user?.role === 'vendor';
@@ -31,6 +36,15 @@ export default function QuotationsPage() {
   useEffect(() => {
     api.get('/api/rfqs', { params: { status: 'Published' } }).then(({ data }) => setRfqs(data)).catch(() => {});
     fetchQuotations();
+    if (isVendor) {
+      api.get('/api/vendors/me')
+        .then(({ data }) => {
+          const required = ['name', 'category', 'gst_number', 'contact_phone'];
+          setProfileOk(required.every(f => data[f]?.toString().trim()));
+          setVendorStatus(data.status || 'Pending');
+        })
+        .catch(() => { setProfileOk(false); setVendorStatus('Pending'); });
+    }
   }, []);
 
   useEffect(() => {
@@ -123,7 +137,19 @@ export default function QuotationsPage() {
             <p style={s.subtitle}>{isVendor ? 'Submit quotations for assigned RFQs' : 'Compare and select the best quotation'}</p>
           </div>
           <div style={{ display: 'flex', gap: '10px' }}>
-            {isVendor && <button style={s.addBtn} onClick={openSubmit}>+ Submit Quotation</button>}
+            {isVendor && vendorStatus === 'Active' && profileOk && (
+              <button style={s.addBtn} onClick={openSubmit}>+ Submit Quotation</button>
+            )}
+            {isVendor && vendorStatus === 'Pending' && (
+              <button style={{ ...s.addBtn, background: '#c2410c', cursor: 'default' }}>
+                ⏳ Pending Admin Approval
+              </button>
+            )}
+            {isVendor && vendorStatus === 'Active' && !profileOk && (
+              <button style={{ ...s.addBtn, background: '#f59e0b' }} onClick={() => navigate('/vendor-profile')}>
+                ⚠ Complete Profile to Submit
+              </button>
+            )}
             {mode !== 'list' && <button style={s.outlineBtn} onClick={() => { setMode('list'); setSuccess(''); }}>← Back to List</button>}
           </div>
         </header>
@@ -133,6 +159,69 @@ export default function QuotationsPage() {
         {/* LIST MODE */}
         {mode === 'list' && (
           <>
+            {/* VENDOR: show open RFQ requests prominently */}
+            {isVendor && vendorStatus === 'Pending' && (
+              <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', color: '#c2410c', borderRadius: r.xl, padding: '24px', textAlign: 'center' }}>
+                <div style={{ fontSize: '32px', marginBottom: '10px' }}>⏳</div>
+                <div style={{ fontSize: '16px', fontWeight: '700', marginBottom: '6px' }}>Account Pending Approval</div>
+                <div style={{ fontSize: '13px' }}>An admin needs to approve your vendor account before you can see RFQs or submit quotations. You'll be notified once you're activated.</div>
+                <button style={{ marginTop: '14px', padding: '8px 18px', borderRadius: r.md, border: '1.5px solid #c2410c', background: '#fff', color: '#c2410c', fontWeight: '600', fontSize: '13px', cursor: 'pointer' }} onClick={() => navigate('/vendor-profile')}>
+                  View My Profile →
+                </button>
+              </div>
+            )}
+
+            {isVendor && vendorStatus === 'Active' && (
+              <div style={s.card}>
+                <div style={s.cardTitle}>Open Quotation Requests</div>
+                {rfqs.length === 0 ? (
+                  <div style={s.empty}>No open RFQs right now. Check back later.</div>
+                ) : (
+                  <>
+                    <p style={{ color: '#6b7280', fontSize: '13px', margin: '0 0 12px' }}>
+                      These RFQs have been assigned to you. Submit a quotation before the deadline.
+                    </p>
+                    <table style={s.table}>
+                      <thead><tr>{['RFQ Title','Category','Deadline','Status'].map(h => <th key={h} style={s.th}>{h}</th>)}</tr></thead>
+                      <tbody>
+                        {rfqs.map(r => {
+                          const alreadySubmitted = quotations.some(q => q.rfq_id === r.rfq_id);
+                          const isOverdue = new Date(r.deadline) < new Date();
+                          return (
+                            <tr key={r.rfq_id} style={s.tr}>
+                              <td style={{ ...s.td, fontWeight: '600', color: c.gray900 }}>{r.title}</td>
+                              <td style={s.td}>{r.category || '—'}</td>
+                              <td style={{ ...s.td, color: isOverdue ? c.red : c.gray700, fontWeight: isOverdue ? '600' : '400' }}>
+                                {fmtDate(r.deadline)}{isOverdue ? ' ⚠ Overdue' : ''}
+                              </td>
+                              <td style={s.td}>
+                                {alreadySubmitted
+                                  ? <span style={{ ...s.chip, background: c.successBg, color: c.successText }}>Submitted ✓</span>
+                                  : profileOk
+                                  ? <button style={{ ...s.addBtn, padding: '5px 14px', fontSize: '12px' }}
+                                      onClick={() => {
+                                        setSubmitForm({ rfq_id: r.rfq_id, tax_rate: 18, delivery_days: '', notes: '', payment_terms: '', lines: [{ ...EMPTY_LINE }], status: 'Submitted' });
+                                        setFormErr(''); setSuccess('');
+                                        setMode('submit');
+                                        loadRFQLines(r.rfq_id);
+                                      }}>
+                                      Submit Quote
+                                    </button>
+                                  : <button style={{ ...s.addBtn, padding: '5px 14px', fontSize: '12px', background: c.amber }} onClick={() => navigate('/vendor-profile')}>
+                                      Complete Profile First
+                                    </button>
+                                }
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </>
+                )}
+              </div>
+            )}
+
             {canCompare && rfqs.length > 0 && (
               <div style={s.card}>
                 <div style={s.cardTitle}>Compare Quotations</div>
@@ -252,7 +341,7 @@ export default function QuotationsPage() {
                 <FRow label="Select RFQ *">
                   <select style={s.input} value={submitForm.rfq_id} onChange={e => { setSubmitForm({ ...submitForm, rfq_id: e.target.value }); loadRFQLines(e.target.value); }} required>
                     <option value="">— Choose an RFQ —</option>
-                    {rfqs.map(r => <option key={r.rfq_id} value={r.rfq_id}>{r.title} (due {r.deadline})</option>)}
+                    {rfqs.map(r => <option key={r.rfq_id} value={r.rfq_id}>{r.title} (due {fmtDate(r.deadline)})</option>)}
                   </select>
                 </FRow>
                 <FRow label="Tax / GST %">
@@ -350,33 +439,33 @@ function FRow({ label, children }) {
 }
 
 const s = {
-  layout:    { display: 'flex', minHeight: '100vh', background: '#f3f4f6', fontFamily: 'Inter,system-ui,sans-serif' },
+  layout:    { display: 'flex', minHeight: '100vh', background: c.pageBg, fontFamily: "'Inter',system-ui,sans-serif" },
   body:      { flex: 1, padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: '18px', overflow: 'auto' },
   header:    { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' },
-  title:     { fontSize: '22px', fontWeight: '700', color: '#111827', margin: 0 },
-  subtitle:  { fontSize: '13px', color: '#6b7280', marginTop: '4px' },
-  addBtn:    { padding: '9px 18px', borderRadius: '8px', border: 'none', background: '#039b15', color: '#fff', fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
-  outlineBtn:{ padding: '9px 18px', borderRadius: '8px', border: '1.5px solid #6b7280', background: '#fff', color: '#374151', fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
-  successBox:{ background: '#dcfce7', border: '1px solid #bbf7d0', color: '#15803d', borderRadius: '8px', padding: '10px 16px', fontSize: '13px' },
-  card:      { background: '#fff', borderRadius: '12px', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.07)' },
-  cardTitle: { fontSize: '14px', fontWeight: '700', color: '#111827', marginBottom: '12px' },
-  empty:     { padding: '32px 0', textAlign: 'center', color: '#9ca3af', fontSize: '13px' },
+  title:     { fontSize: '22px', fontWeight: '700', color: c.gray900, margin: 0 },
+  subtitle:  { fontSize: '13px', color: c.gray500, marginTop: '4px' },
+  addBtn:    { padding: '9px 18px', borderRadius: r.md, border: 'none', background: c.primary, color: '#fff', fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
+  outlineBtn:{ padding: '9px 18px', borderRadius: r.md, border: `1.5px solid ${c.gray500}`, background: c.surface, color: c.gray700, fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
+  successBox:{ background: c.successBg, border: `1px solid ${c.successBorder}`, color: c.successText, borderRadius: r.md, padding: '10px 16px', fontSize: '13px' },
+  card:      { background: c.surface, borderRadius: r.xl, padding: '20px', boxShadow: sh.sm },
+  cardTitle: { fontSize: '14px', fontWeight: '700', color: c.gray900, marginBottom: '12px' },
+  empty:     { padding: '32px 0', textAlign: 'center', color: c.gray400, fontSize: '13px' },
   table:     { width: '100%', borderCollapse: 'collapse' },
-  th:        { padding: '8px 12px', fontSize: '11px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase', textAlign: 'left', borderBottom: '1px solid #f3f4f6', background: '#fafafa' },
-  tr:        { borderBottom: '1px solid #f9fafb' },
-  td:        { padding: '11px 12px', fontSize: '13px', color: '#374151' },
-  chip:      { padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600' },
-  viewBtn:   { padding: '4px 12px', borderRadius: '6px', border: '1.5px solid #039b15', color: '#039b15', background: '#fff', fontWeight: '600', fontSize: '11px', cursor: 'pointer' },
-  rfqChip:   { padding: '6px 14px', borderRadius: '20px', border: '1.5px solid #d1d5db', background: '#fff', fontSize: '12px', fontWeight: '600', color: '#374151', cursor: 'pointer' },
-  input:     { width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '13px', color: '#111827', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' },
-  errBox:    { background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '8px', padding: '10px', fontSize: '13px', marginBottom: '12px' },
-  addLineBtn:{ padding: '6px 14px', borderRadius: '6px', border: '1px dashed #039b15', color: '#039b15', background: '#f0fdf4', fontSize: '12px', cursor: 'pointer', fontWeight: '600', marginTop: '8px' },
-  totalBox:  { background: '#f9fafb', borderRadius: '10px', padding: '14px 16px', marginTop: '16px', width: '260px', marginLeft: 'auto' },
-  totalRow:  { display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: '#374151', padding: '4px 0' },
+  th:        { padding: '8px 12px', fontSize: '11px', fontWeight: '600', color: c.gray500, textTransform: 'uppercase', textAlign: 'left', borderBottom: `1px solid ${c.gray100}`, background: c.gray150 },
+  tr:        { borderBottom: `1px solid ${c.gray50}` },
+  td:        { padding: '11px 12px', fontSize: '13px', color: c.gray700 },
+  chip:      { padding: '3px 10px', borderRadius: r.full, fontSize: '11px', fontWeight: '600' },
+  viewBtn:   { padding: '4px 12px', borderRadius: r.sm, border: `1.5px solid ${c.primary}`, color: c.primary, background: c.surface, fontWeight: '600', fontSize: '11px', cursor: 'pointer' },
+  rfqChip:   { padding: '6px 14px', borderRadius: r.full, border: `1.5px solid ${c.gray300}`, background: c.surface, fontSize: '12px', fontWeight: '600', color: c.gray700, cursor: 'pointer' },
+  input:     { width: '100%', padding: '8px 12px', borderRadius: r.md, border: `1px solid ${c.gray300}`, fontSize: '13px', color: c.gray900, outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' },
+  errBox:    { background: c.errorBg, border: `1px solid ${c.errorBorder}`, color: c.errorText, borderRadius: r.md, padding: '10px', fontSize: '13px', marginBottom: '12px' },
+  addLineBtn:{ padding: '6px 14px', borderRadius: r.sm, border: `1px dashed ${c.primary}`, color: c.primary, background: c.primaryBgSoft, fontSize: '12px', cursor: 'pointer', fontWeight: '600', marginTop: '8px' },
+  totalBox:  { background: c.gray50, borderRadius: r.lg, padding: '14px 16px', marginTop: '16px', width: '260px', marginLeft: 'auto' },
+  totalRow:  { display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: c.gray700, padding: '4px 0' },
   overlay:   { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
-  modal:     { background: '#fff', borderRadius: '16px', width: '500px', maxWidth: '95vw', maxHeight: '88vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' },
-  modalHeader:{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid #f3f4f6' },
-  modalTitle: { fontSize: '15px', fontWeight: '700', color: '#111827' },
-  closeBtn:   { background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', fontSize: '18px' },
+  modal:     { background: c.surface, borderRadius: r['2xl'], width: '500px', maxWidth: '95vw', maxHeight: '88vh', display: 'flex', flexDirection: 'column', boxShadow: sh.modal },
+  modalHeader:{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: `1px solid ${c.gray100}` },
+  modalTitle: { fontSize: '15px', fontWeight: '700', color: c.gray900 },
+  closeBtn:   { background: 'none', border: 'none', cursor: 'pointer', color: c.gray400, fontSize: '18px' },
   modalBody: { padding: '18px 20px', overflowY: 'auto' },
 };
