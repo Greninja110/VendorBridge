@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { c, r, sh } from '../theme';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import Sidebar from './dashboards/Sidebar';
+import { fmtDateTime } from '../utils/date';
 
 const fmt = (n) => n != null ? `₹${Number(n).toLocaleString('en-IN')}` : '—';
 const STEPS = ['Submitted', 'L1 Review', 'L2 Approval', 'Generate PO'];
@@ -107,7 +109,7 @@ export default function ApprovalsPage() {
                   </span>
                 </div>
                 {item.remarks && <div style={s.remarksDisplay}>"{item.remarks}"</div>}
-                <div style={s.decidedMeta}>by {item.decided_by} · {new Date(item.decided_at).toLocaleDateString()}</div>
+                <div style={s.decidedMeta}>by {item.decided_by} · {fmtDateTime(item.decided_at)}</div>
               </div>
             ))}
           </>
@@ -184,35 +186,35 @@ function SumRow({ k, v }) {
 }
 
 const s = {
-  layout:      { display: 'flex', minHeight: '100vh', background: '#f3f4f6', fontFamily: 'Inter,system-ui,sans-serif' },
+  layout:      { display: 'flex', minHeight: '100vh', background: c.pageBg, fontFamily: "'Inter',system-ui,sans-serif" },
   body:        { flex: 1, padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: '16px', overflow: 'auto' },
   header:      { display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
   headerStats: { display: 'flex', gap: '10px' },
-  title:       { fontSize: '22px', fontWeight: '700', color: '#111827', margin: 0 },
-  subtitle:    { fontSize: '13px', color: '#6b7280', marginTop: '4px' },
-  card:        { background: '#fff', borderRadius: '12px', padding: '18px 20px', boxShadow: '0 1px 3px rgba(0,0,0,0.07)' },
-  cardTitle:   { fontSize: '13px', fontWeight: '700', color: '#111827', marginBottom: '14px' },
+  title:       { fontSize: '22px', fontWeight: '700', color: c.gray900, margin: 0 },
+  subtitle:    { fontSize: '13px', color: c.gray500, marginTop: '4px' },
+  card:        { background: c.surface, borderRadius: r.xl, padding: '18px 20px', boxShadow: sh.sm },
+  cardTitle:   { fontSize: '13px', fontWeight: '700', color: c.gray900, marginBottom: '14px' },
   chainRow:    { display: 'flex', alignItems: 'center' },
   stepCol:     { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' },
-  dot:         { width: '30px', height: '30px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '12px' },
+  dot:         { width: '30px', height: '30px', borderRadius: r.full, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '12px' },
   stepLabel:   { fontSize: '11px', fontWeight: '500', whiteSpace: 'nowrap' },
   line:        { height: '2px', flex: 1, margin: '0 6px 16px' },
-  msgBox:      { background: '#dcfce7', border: '1px solid #bbf7d0', color: '#15803d', borderRadius: '8px', padding: '10px 16px', fontSize: '13px' },
-  sectionHeader: { fontSize: '13px', fontWeight: '700', color: '#374151' },
-  empty:       { padding: '32px', textAlign: 'center', color: '#9ca3af', fontSize: '14px', background: '#fff', borderRadius: '12px' },
-  itemCard:    { background: '#fff', borderRadius: '10px', padding: '16px 18px', boxShadow: '0 1px 3px rgba(0,0,0,0.07)' },
-  itemTitle:   { fontSize: '14px', fontWeight: '600', color: '#111827' },
-  itemMeta:    { fontSize: '12px', color: '#6b7280', marginTop: '3px' },
-  amount:      { fontSize: '16px', fontWeight: '700', color: '#111827' },
-  chip:        { padding: '2px 8px', borderRadius: '20px', fontSize: '11px', fontWeight: '600' },
-  expandBody:  { marginTop: '14px', paddingTop: '14px', borderTop: '1px solid #f3f4f6' },
-  summaryGrid: { background: '#f9fafb', borderRadius: '8px', padding: '12px 14px', marginBottom: '14px' },
+  msgBox:      { background: c.successBg, border: `1px solid ${c.successBorder}`, color: c.successText, borderRadius: r.md, padding: '10px 16px', fontSize: '13px' },
+  sectionHeader: { fontSize: '13px', fontWeight: '700', color: c.gray700 },
+  empty:       { padding: '32px', textAlign: 'center', color: c.gray400, fontSize: '14px', background: c.surface, borderRadius: r.xl },
+  itemCard:    { background: c.surface, borderRadius: r.lg, padding: '16px 18px', boxShadow: sh.sm },
+  itemTitle:   { fontSize: '14px', fontWeight: '600', color: c.gray900 },
+  itemMeta:    { fontSize: '12px', color: c.gray500, marginTop: '3px' },
+  amount:      { fontSize: '16px', fontWeight: '700', color: c.gray900 },
+  chip:        { padding: '2px 8px', borderRadius: r.full, fontSize: '11px', fontWeight: '600' },
+  expandBody:  { marginTop: '14px', paddingTop: '14px', borderTop: `1px solid ${c.gray100}` },
+  summaryGrid: { background: c.gray50, borderRadius: r.md, padding: '12px 14px', marginBottom: '14px' },
   actionArea:  { display: 'flex', gap: '16px', alignItems: 'flex-start' },
-  remarkLabel: { fontSize: '12px', fontWeight: '600', color: '#374151', marginBottom: '6px', display: 'block' },
-  remarkInput: { width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '13px', color: '#111827', resize: 'vertical', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' },
+  remarkLabel: { fontSize: '12px', fontWeight: '600', color: c.gray700, marginBottom: '6px', display: 'block' },
+  remarkInput: { width: '100%', padding: '9px 12px', borderRadius: r.md, border: `1px solid ${c.gray300}`, fontSize: '13px', color: c.gray900, resize: 'vertical', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' },
   actionBtns:  { display: 'flex', flexDirection: 'column', gap: '8px', flexShrink: 0 },
-  approveBtn:  { padding: '9px 20px', borderRadius: '8px', border: 'none', background: '#15803d', color: '#fff', fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
-  rejectBtn:   { padding: '9px 20px', borderRadius: '8px', border: 'none', background: '#dc2626', color: '#fff', fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
-  remarksDisplay: { fontSize: '12px', color: '#6b7280', fontStyle: 'italic', marginTop: '8px', paddingLeft: '4px' },
-  decidedMeta: { fontSize: '11px', color: '#9ca3af', marginTop: '4px' },
+  approveBtn:  { padding: '9px 20px', borderRadius: r.md, border: 'none', background: c.primaryText, color: '#fff', fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
+  rejectBtn:   { padding: '9px 20px', borderRadius: r.md, border: 'none', background: c.red, color: '#fff', fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
+  remarksDisplay: { fontSize: '12px', color: c.gray500, fontStyle: 'italic', marginTop: '8px', paddingLeft: '4px' },
+  decidedMeta: { fontSize: '11px', color: c.gray400, marginTop: '4px' },
 };
