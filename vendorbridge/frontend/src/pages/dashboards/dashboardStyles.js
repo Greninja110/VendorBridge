@@ -1,0 +1,52 @@
+export function makeStyles(badgeColor) {
+  return {
+    page: { minHeight: '100vh', background: '#f3f4f6', fontFamily: 'Inter, sans-serif' },
+    nav: {
+      background: '#0a1d17',
+      padding: '0 32px',
+      height: '60px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    brand: { color: '#fff', fontWeight: '700', fontSize: '18px' },
+    navRight: { display: 'flex', alignItems: 'center', gap: '16px' },
+    badge: {
+      background: badgeColor,
+      color: '#fff',
+      padding: '3px 10px',
+      borderRadius: '20px',
+      fontSize: '12px',
+      fontWeight: '600',
+      textTransform: 'uppercase',
+    },
+    userName: { color: '#d1fae5', fontSize: '14px' },
+    logoutBtn: {
+      background: 'transparent',
+      border: '1px solid #6b7280',
+      color: '#d1d5db',
+      padding: '6px 14px',
+      borderRadius: '6px',
+      cursor: 'pointer',
+      fontSize: '13px',
+    },
+    main: { padding: '40px 32px' },
+    heading: { fontSize: '28px', fontWeight: '700', color: '#111827', marginBottom: '8px' },
+    sub: { color: '#6b7280', marginBottom: '32px' },
+    grid: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+      gap: '16px',
+    },
+    card: {
+      background: '#fff',
+      borderRadius: '12px',
+      padding: '24px',
+      fontWeight: '600',
+      color: '#374151',
+      boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+      cursor: 'pointer',
+      border: `2px solid transparent`,
+    },
+  };
+}
