@@ -27,12 +27,28 @@ router.post('/register', async (req, res) => {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
 
     db.query(sql, [first_name, last_name, email, phone || null, hashed, role, country || null, additional_info || null],
-      async (err) => {
+      async (err, result) => {
         if (err) {
           if (err.code === 'ER_DUP_ENTRY')
             return res.status(409).json({ message: 'Email already registered.' });
           return res.status(500).json({ message: 'Database error.' });
         }
+
+        const newUserId = result.insertId;
+
+        // Auto-link vendor record if contact_email matches
+        db.query(
+          'SELECT vendor_id FROM vendors WHERE contact_email = ? LIMIT 1',
+          [email],
+          (vErr, vRows) => {
+            if (!vErr && vRows.length > 0) {
+              db.query(
+                'UPDATE users SET vendor_id = ?, role = "vendor" WHERE id = ?',
+                [vRows[0].vendor_id, newUserId]
+              );
+            }
+          }
+        );
 
         // Welcome email
         const roleLabels = {
@@ -85,14 +101,14 @@ router.post('/login', (req, res) => {
     db.query('UPDATE users SET last_login = NOW() WHERE id = ?', [user.id]);
 
     const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role, name: `${user.first_name} ${user.last_name}` },
+      { id: user.id, email: user.email, role: user.role, name: `${user.first_name} ${user.last_name}`, vendor_id: user.vendor_id || null },
       JWT_SECRET,
       { expiresIn: '8h' }
     );
 
     res.json({
       token,
-      user: { id: user.id, name: `${user.first_name} ${user.last_name}`, email: user.email, role: user.role },
+      user: { id: user.id, name: `${user.first_name} ${user.last_name}`, email: user.email, role: user.role, vendor_id: user.vendor_id || null },
     });
   });
 });
