@@ -1,16 +1,24 @@
 import React, { useEffect, useState } from 'react';
+import { c, r, sh } from '../../theme';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import Sidebar from './Sidebar';
+import { fmtDate } from '../../utils/date';
 
 export default function VendorDashboard() {
   const { user }  = useAuth();
   const navigate  = useNavigate();
-  const [rfqs,    setRfqs]    = useState([]);
-  const [quotes,  setQuotes]  = useState([]);
+  const [rfqs,          setRfqs]          = useState([]);
+  const [quotes,        setQuotes]        = useState([]);
+  const [vendorStatus,  setVendorStatus]  = useState(null); // null=loading, 'Pending', 'Active', 'Blocked'
 
   useEffect(() => {
+    // Fetch vendor status first
+    api.get('/api/vendors/me')
+      .then(({ data }) => setVendorStatus(data.status || 'Pending'))
+      .catch(() => setVendorStatus('Pending'));
+
     Promise.all([
       api.get('/api/rfqs', { params: { status: 'Published' } }),
       api.get('/api/quotations'),
@@ -37,8 +45,26 @@ export default function VendorDashboard() {
             <h1 style={s.title}>Vendor Dashboard</h1>
             <p style={s.subtitle}>Welcome, {user?.name} — manage your quotations and track orders</p>
           </div>
-          <button style={s.addBtn} onClick={() => navigate('/quotations')}>+ Submit Quotation</button>
+          {vendorStatus === 'Active' && (
+            <button style={s.addBtn} onClick={() => navigate('/quotations')}>+ Submit Quotation</button>
+          )}
+          {vendorStatus === 'Pending' && (
+            <button style={{ ...s.addBtn, background: '#c2410c', cursor: 'default' }}>⏳ Pending Approval</button>
+          )}
         </header>
+
+        {/* Pending approval banner */}
+        {vendorStatus === 'Pending' && (
+          <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: r.xl, padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+            <div>
+              <div style={{ fontSize: '15px', fontWeight: '700', color: '#c2410c', marginBottom: '4px' }}>⏳ Account Pending Admin Approval</div>
+              <div style={{ fontSize: '13px', color: '#9a3412' }}>Your vendor profile has been submitted. An admin must approve your account before you can see RFQs and submit quotations.</div>
+            </div>
+            <button style={{ flexShrink: 0, padding: '8px 16px', borderRadius: r.md, border: '1.5px solid #c2410c', background: '#fff', color: '#c2410c', fontWeight: '600', fontSize: '13px', cursor: 'pointer' }} onClick={() => navigate('/vendor-profile')}>
+              View Profile
+            </button>
+          </div>
+        )}
 
         <div style={s.statsGrid}>
           <StatCard label="Open RFQs"           value={rfqs.length}     sub="assigned to you"   bg="#dbeafe" color="#1d4ed8" onClick={() => navigate('/rfqs')} />
@@ -54,7 +80,7 @@ export default function VendorDashboard() {
               <button style={s.linkBtn} onClick={() => navigate('/rfqs')}>View all →</button>
             </div>
             {rfqs.length === 0
-              ? <div style={s.empty}>No open RFQs assigned. Check back once a procurement officer publishes one.</div>
+              ? <div style={s.empty}>{vendorStatus === 'Pending' ? 'Your account is pending approval. RFQs will appear here once an admin activates you.' : 'No open RFQs right now. Check back later.'}</div>
               : (
                 <table style={s.table}>
                   <thead><tr>{['RFQ Title','Category','Deadline','Action'].map(h => <th key={h} style={s.th}>{h}</th>)}</tr></thead>
@@ -63,7 +89,7 @@ export default function VendorDashboard() {
                       <tr key={r.rfq_id} style={s.tr}>
                         <td style={{ ...s.td, fontWeight: '600', color: '#111827' }}>{r.title}</td>
                         <td style={s.td}>{r.category || '—'}</td>
-                        <td style={s.td}>{r.deadline}</td>
+                        <td style={s.td}>{fmtDate(r.deadline)}</td>
                         <td style={s.td}>
                           <button style={s.submitBtn} onClick={() => navigate('/quotations')}>Submit Quote</button>
                         </td>
@@ -113,27 +139,27 @@ function StatCard({ label, value, sub, bg, color, onClick }) {
 }
 
 const s = {
-  layout:    { display: 'flex', minHeight: '100vh', background: '#f3f4f6', fontFamily: 'Inter,system-ui,sans-serif' },
+  layout:    { display: 'flex', minHeight: '100vh', background: c.pageBg, fontFamily: "'Inter',system-ui,sans-serif" },
   body:      { flex: 1, padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: '20px', overflow: 'auto' },
   header:    { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' },
-  title:     { fontSize: '22px', fontWeight: '700', color: '#111827', margin: 0 },
-  subtitle:  { fontSize: '13px', color: '#6b7280', marginTop: '4px' },
-  addBtn:    { padding: '9px 18px', borderRadius: '8px', border: 'none', background: '#0891b2', color: '#fff', fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
+  title:     { fontSize: '22px', fontWeight: '700', color: c.gray900, margin: 0 },
+  subtitle:  { fontSize: '13px', color: c.gray500, marginTop: '4px' },
+  addBtn:    { padding: '9px 18px', borderRadius: r.md, border: 'none', background: c.cyan, color: '#fff', fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
   statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '16px' },
-  statCard:  { background: '#fff', borderRadius: '12px', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.07)' },
-  statBadge: { display: 'inline-block', padding: '4px 12px', borderRadius: '20px', fontWeight: '700', fontSize: '20px', marginBottom: '8px' },
-  statLabel: { fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '2px' },
-  statSub:   { fontSize: '11px', color: '#9ca3af' },
+  statCard:  { background: c.surface, borderRadius: r.xl, padding: '20px', boxShadow: sh.sm },
+  statBadge: { display: 'inline-block', padding: '4px 12px', borderRadius: r.full, fontWeight: '700', fontSize: '20px', marginBottom: '8px' },
+  statLabel: { fontSize: '13px', fontWeight: '600', color: c.gray700, marginBottom: '2px' },
+  statSub:   { fontSize: '11px', color: c.gray400 },
   row:       { display: 'flex', gap: '20px' },
-  card:      { background: '#fff', borderRadius: '12px', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.07)' },
+  card:      { background: c.surface, borderRadius: r.xl, padding: '20px', boxShadow: sh.sm },
   cardHeader:{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' },
-  cardTitle: { fontSize: '14px', fontWeight: '600', color: '#111827' },
-  linkBtn:   { fontSize: '12px', fontWeight: '600', color: '#0891b2', background: 'none', border: 'none', cursor: 'pointer' },
-  empty:     { padding: '24px 0', textAlign: 'center', color: '#9ca3af', fontSize: '13px' },
+  cardTitle: { fontSize: '14px', fontWeight: '600', color: c.gray900 },
+  linkBtn:   { fontSize: '12px', fontWeight: '600', color: c.cyan, background: 'none', border: 'none', cursor: 'pointer' },
+  empty:     { padding: '24px 0', textAlign: 'center', color: c.gray400, fontSize: '13px' },
   table:     { width: '100%', borderCollapse: 'collapse' },
-  th:        { padding: '8px 10px', fontSize: '11px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase', textAlign: 'left', borderBottom: '1px solid #f3f4f6', background: '#fafafa' },
-  tr:        { borderBottom: '1px solid #f9fafb' },
-  td:        { padding: '10px 10px', fontSize: '13px', color: '#374151' },
-  chip:      { padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600' },
-  submitBtn: { padding: '4px 12px', borderRadius: '6px', border: '1.5px solid #0891b2', color: '#0891b2', background: '#fff', fontWeight: '600', fontSize: '11px', cursor: 'pointer' },
+  th:        { padding: '8px 10px', fontSize: '11px', fontWeight: '600', color: c.gray500, textTransform: 'uppercase', textAlign: 'left', borderBottom: `1px solid ${c.gray100}`, background: c.gray150 },
+  tr:        { borderBottom: `1px solid ${c.gray50}` },
+  td:        { padding: '10px 10px', fontSize: '13px', color: c.gray700 },
+  chip:      { padding: '3px 10px', borderRadius: r.full, fontSize: '11px', fontWeight: '600' },
+  submitBtn: { padding: '4px 12px', borderRadius: r.sm, border: `1.5px solid ${c.cyan}`, color: c.cyan, background: c.surface, fontWeight: '600', fontSize: '11px', cursor: 'pointer' },
 };

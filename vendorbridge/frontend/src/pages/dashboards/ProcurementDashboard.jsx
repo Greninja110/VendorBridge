@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { c, r, sh } from '../../theme';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import Sidebar from './Sidebar';
@@ -110,27 +111,27 @@ function StatCard({ label, value, sub, bg, color, onClick }) {
 }
 
 const s = {
-  layout:    { display: 'flex', minHeight: '100vh', background: '#f3f4f6', fontFamily: 'Inter,system-ui,sans-serif' },
+  layout:    { display: 'flex', minHeight: '100vh', background: c.pageBg, fontFamily: "'Inter',system-ui,sans-serif" },
   body:      { flex: 1, padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: '20px', overflow: 'auto' },
   header:    { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' },
-  title:     { fontSize: '22px', fontWeight: '700', color: '#111827', margin: 0 },
-  subtitle:  { fontSize: '13px', color: '#6b7280', marginTop: '4px' },
-  addBtn:    { padding: '9px 18px', borderRadius: '8px', border: 'none', background: '#039b15', color: '#fff', fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
+  title:     { fontSize: '22px', fontWeight: '700', color: c.gray900, margin: 0 },
+  subtitle:  { fontSize: '13px', color: c.gray500, marginTop: '4px' },
+  addBtn:    { padding: '9px 18px', borderRadius: r.md, border: 'none', background: c.primary, color: '#fff', fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
   statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '16px' },
-  statCard:  { background: '#fff', borderRadius: '12px', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.07)', transition: 'box-shadow 0.15s' },
-  statBadge: { display: 'inline-block', padding: '4px 12px', borderRadius: '20px', fontWeight: '700', fontSize: '20px', marginBottom: '8px' },
-  statLabel: { fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '2px' },
-  statSub:   { fontSize: '11px', color: '#9ca3af' },
+  statCard:  { background: c.surface, borderRadius: r.xl, padding: '20px', boxShadow: sh.sm, transition: 'box-shadow 0.15s' },
+  statBadge: { display: 'inline-block', padding: '4px 12px', borderRadius: r.full, fontWeight: '700', fontSize: '20px', marginBottom: '8px' },
+  statLabel: { fontSize: '13px', fontWeight: '600', color: c.gray700, marginBottom: '2px' },
+  statSub:   { fontSize: '11px', color: c.gray400 },
   row:       { display: 'flex', gap: '20px' },
-  card:      { background: '#fff', borderRadius: '12px', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.07)' },
+  card:      { background: c.surface, borderRadius: r.xl, padding: '20px', boxShadow: sh.sm },
   cardHeader:{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' },
-  cardTitle: { fontSize: '14px', fontWeight: '600', color: '#111827' },
-  linkBtn:   { fontSize: '12px', fontWeight: '600', color: '#039b15', background: 'none', border: 'none', cursor: 'pointer' },
-  empty:     { padding: '24px 0', textAlign: 'center', color: '#9ca3af', fontSize: '13px' },
+  cardTitle: { fontSize: '14px', fontWeight: '600', color: c.gray900 },
+  linkBtn:   { fontSize: '12px', fontWeight: '600', color: c.primary, background: 'none', border: 'none', cursor: 'pointer' },
+  empty:     { padding: '24px 0', textAlign: 'center', color: c.gray400, fontSize: '13px' },
   table:     { width: '100%', borderCollapse: 'collapse' },
-  th:        { padding: '8px 10px', fontSize: '11px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase', textAlign: 'left', borderBottom: '1px solid #f3f4f6', background: '#fafafa' },
-  tr:        { borderBottom: '1px solid #f9fafb' },
-  td:        { padding: '10px 10px', fontSize: '13px', color: '#374151' },
-  chip:      { padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '600' },
-  qaBtn:     { display: 'block', width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1.5px solid', background: '#fff', fontWeight: '600', fontSize: '13px', cursor: 'pointer', textAlign: 'left' },
+  th:        { padding: '8px 10px', fontSize: '11px', fontWeight: '600', color: c.gray500, textTransform: 'uppercase', textAlign: 'left', borderBottom: `1px solid ${c.gray100}`, background: c.gray150 },
+  tr:        { borderBottom: `1px solid ${c.gray50}` },
+  td:        { padding: '10px 10px', fontSize: '13px', color: c.gray700 },
+  chip:      { padding: '3px 10px', borderRadius: r.full, fontSize: '11px', fontWeight: '600' },
+  qaBtn:     { display: 'block', width: '100%', padding: '9px 12px', borderRadius: r.md, border: '1.5px solid', background: c.surface, fontWeight: '600', fontSize: '13px', cursor: 'pointer', textAlign: 'left' },
 };

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { c, r, sh } from '../../theme';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import Sidebar from './Sidebar';
@@ -99,28 +100,28 @@ function StatCard({ label, value, sub, bg, color, onClick }) {
 }
 
 const s = {
-  layout:     { display: 'flex', minHeight: '100vh', background: '#f3f4f6', fontFamily: 'Inter,system-ui,sans-serif' },
+  layout:     { display: 'flex', minHeight: '100vh', background: c.pageBg, fontFamily: "'Inter',system-ui,sans-serif" },
   body:       { flex: 1, padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: '20px', overflow: 'auto' },
   header:     { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' },
-  title:      { fontSize: '22px', fontWeight: '700', color: '#111827', margin: 0 },
-  subtitle:   { fontSize: '13px', color: '#6b7280', marginTop: '4px' },
-  addBtn:     { padding: '9px 18px', borderRadius: '8px', border: 'none', background: '#b45309', color: '#fff', fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
+  title:      { fontSize: '22px', fontWeight: '700', color: c.gray900, margin: 0 },
+  subtitle:   { fontSize: '13px', color: c.gray500, marginTop: '4px' },
+  addBtn:     { padding: '9px 18px', borderRadius: r.md, border: 'none', background: c.orange, color: '#fff', fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
   statsGrid:  { display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '16px' },
-  statCard:   { background: '#fff', borderRadius: '12px', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.07)' },
-  statBadge:  { display: 'inline-block', padding: '4px 12px', borderRadius: '20px', fontWeight: '700', fontSize: '20px', marginBottom: '8px' },
-  statLabel:  { fontSize: '13px', fontWeight: '600', color: '#374151', marginBottom: '2px' },
-  statSub:    { fontSize: '11px', color: '#9ca3af' },
+  statCard:   { background: c.surface, borderRadius: r.xl, padding: '20px', boxShadow: sh.sm },
+  statBadge:  { display: 'inline-block', padding: '4px 12px', borderRadius: r.full, fontWeight: '700', fontSize: '20px', marginBottom: '8px' },
+  statLabel:  { fontSize: '13px', fontWeight: '600', color: c.gray700, marginBottom: '2px' },
+  statSub:    { fontSize: '11px', color: c.gray400 },
   row:        { display: 'flex', gap: '20px' },
-  card:       { background: '#fff', borderRadius: '12px', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.07)' },
+  card:       { background: c.surface, borderRadius: r.xl, padding: '20px', boxShadow: sh.sm },
   cardHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' },
-  cardTitle:  { fontSize: '14px', fontWeight: '600', color: '#111827' },
-  linkBtn:    { fontSize: '12px', fontWeight: '600', color: '#b45309', background: 'none', border: 'none', cursor: 'pointer' },
-  empty:      { padding: '24px 0', textAlign: 'center', color: '#9ca3af', fontSize: '13px' },
-  pendingItem:{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid #f9fafb' },
-  itemTitle:  { fontSize: '13px', fontWeight: '600', color: '#111827' },
-  itemMeta:   { fontSize: '11px', color: '#9ca3af', marginTop: '2px' },
-  amount:     { fontSize: '14px', fontWeight: '700', color: '#111827' },
-  reviewBtn:  { padding: '5px 12px', borderRadius: '6px', border: '1.5px solid #b45309', color: '#b45309', background: '#fff', fontWeight: '600', fontSize: '12px', cursor: 'pointer' },
+  cardTitle:  { fontSize: '14px', fontWeight: '600', color: c.gray900 },
+  linkBtn:    { fontSize: '12px', fontWeight: '600', color: c.orange, background: 'none', border: 'none', cursor: 'pointer' },
+  empty:      { padding: '24px 0', textAlign: 'center', color: c.gray400, fontSize: '13px' },
+  pendingItem:{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderBottom: `1px solid ${c.gray50}` },
+  itemTitle:  { fontSize: '13px', fontWeight: '600', color: c.gray900 },
+  itemMeta:   { fontSize: '11px', color: c.gray400, marginTop: '2px' },
+  amount:     { fontSize: '14px', fontWeight: '700', color: c.gray900 },
+  reviewBtn:  { padding: '5px 12px', borderRadius: r.sm, border: `1.5px solid ${c.orange}`, color: c.orange, background: c.surface, fontWeight: '600', fontSize: '12px', cursor: 'pointer' },
   navGrid:    { display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '10px' },
-  navCard:    { background: '#f9fafb', borderRadius: '10px', padding: '14px 16px', cursor: 'pointer', border: '1px solid #e5e7eb' },
+  navCard:    { background: c.gray50, borderRadius: r.lg, padding: '14px 16px', cursor: 'pointer', border: `1px solid ${c.gray200}` },
 };

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import Sidebar from './Sidebar';
+import { c, r, sh } from '../../theme';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -100,18 +101,18 @@ function StatCard({ label, value, bg, color, onClick }) {
 }
 
 const s = {
-  layout:      { display: 'flex', minHeight: '100vh', background: '#f3f4f6', fontFamily: 'Inter,system-ui,sans-serif' },
+  layout:      { display: 'flex', minHeight: '100vh', background: c.pageBg, fontFamily: "'Inter',system-ui,sans-serif" },
   body:        { flex: 1, padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: '14px', overflow: 'auto' },
   header:      { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '4px' },
-  title:       { fontSize: '22px', fontWeight: '700', color: '#111827', margin: 0 },
-  subtitle:    { fontSize: '13px', color: '#6b7280', marginTop: '4px' },
-  addBtn:      { padding: '9px 18px', borderRadius: '8px', border: 'none', background: '#7c3aed', color: '#fff', fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
-  outlineBtn:  { padding: '9px 18px', borderRadius: '8px', border: '1.5px solid #7c3aed', background: '#fff', color: '#7c3aed', fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
-  sectionLabel:{ fontSize: '11px', fontWeight: '700', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '4px' },
+  title:       { fontSize: '22px', fontWeight: '700', color: c.gray900, margin: 0 },
+  subtitle:    { fontSize: '13px', color: c.gray500, marginTop: '4px' },
+  addBtn:      { padding: '9px 18px', borderRadius: r.md, border: 'none', background: c.purple, color: '#fff', fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
+  outlineBtn:  { padding: '9px 18px', borderRadius: r.md, border: `1.5px solid ${c.purple}`, background: c.surface, color: c.purple, fontWeight: '600', fontSize: '13px', cursor: 'pointer' },
+  sectionLabel:{ fontSize: '11px', fontWeight: '700', color: c.gray500, textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: '4px' },
   statsGrid:   { display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '12px' },
-  statCard:    { background: '#fff', borderRadius: '10px', padding: '16px 18px', boxShadow: '0 1px 3px rgba(0,0,0,0.07)' },
-  statBadge:   { display: 'inline-block', padding: '3px 12px', borderRadius: '20px', fontWeight: '700', fontSize: '18px', marginBottom: '6px' },
-  statLabel:   { fontSize: '12px', fontWeight: '600', color: '#6b7280' },
+  statCard:    { background: c.surface, borderRadius: r.lg, padding: '16px 18px', boxShadow: sh.sm },
+  statBadge:   { display: 'inline-block', padding: '3px 12px', borderRadius: r.full, fontWeight: '700', fontSize: '18px', marginBottom: '6px' },
+  statLabel:   { fontSize: '12px', fontWeight: '600', color: c.gray500 },
   navGrid:     { display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '10px', marginTop: '4px' },
-  navCard:     { background: '#fff', borderRadius: '10px', padding: '14px 16px', cursor: 'pointer', border: '1px solid #e5e7eb', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' },
+  navCard:     { background: c.surface, borderRadius: r.lg, padding: '14px 16px', cursor: 'pointer', border: `1px solid ${c.gray200}`, boxShadow: sh.xs },
 };
