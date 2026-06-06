@@ -82,6 +82,8 @@ router.post('/login', (req, res) => {
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(401).json({ message: 'Invalid email or password.' });
 
+    db.query('UPDATE users SET last_login = NOW() WHERE id = ?', [user.id]);
+
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role, name: `${user.first_name} ${user.last_name}` },
       JWT_SECRET,

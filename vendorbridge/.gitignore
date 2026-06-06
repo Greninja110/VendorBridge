@@ -1,3 +1,4 @@
 node_modules/
 .env
 dist/
+VendorBridge MySQL Schema.pdf
