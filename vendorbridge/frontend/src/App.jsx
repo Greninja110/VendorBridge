@@ -10,6 +10,13 @@ import AdminDashboard from './pages/dashboards/AdminDashboard';
 import VendorDashboard from './pages/dashboards/VendorDashboard';
 import ProcurementDashboard from './pages/dashboards/ProcurementDashboard';
 import ManagerDashboard from './pages/dashboards/ManagerDashboard';
+import VendorsPage from './pages/VendorsPage';
+import RFQsPage from './pages/RFQsPage';
+import QuotationsPage from './pages/QuotationsPage';
+import ApprovalsPage from './pages/ApprovalsPage';
+import PurchaseOrdersPage from './pages/PurchaseOrdersPage';
+import InvoicesPage from './pages/InvoicesPage';
+import UsersPage from './pages/UsersPage';
 
 function RoleRedirect() {
   const { user } = useAuth();
@@ -44,6 +51,27 @@ export default function App() {
           } />
           <Route path="/dashboard/manager" element={
             <ProtectedRoute allowedRoles={['manager']}><ManagerDashboard /></ProtectedRoute>
+          } />
+          <Route path="/vendors" element={
+            <ProtectedRoute allowedRoles={['admin','procurement_officer','manager','vendor']}><VendorsPage /></ProtectedRoute>
+          } />
+          <Route path="/rfqs" element={
+            <ProtectedRoute allowedRoles={['admin','procurement_officer','manager','vendor']}><RFQsPage /></ProtectedRoute>
+          } />
+          <Route path="/quotations" element={
+            <ProtectedRoute allowedRoles={['admin','procurement_officer','manager','vendor']}><QuotationsPage /></ProtectedRoute>
+          } />
+          <Route path="/approvals" element={
+            <ProtectedRoute allowedRoles={['admin','manager','procurement_officer']}><ApprovalsPage /></ProtectedRoute>
+          } />
+          <Route path="/purchase-orders" element={
+            <ProtectedRoute allowedRoles={['admin','procurement_officer','manager']}><PurchaseOrdersPage /></ProtectedRoute>
+          } />
+          <Route path="/invoices" element={
+            <ProtectedRoute allowedRoles={['admin','procurement_officer','manager']}><InvoicesPage /></ProtectedRoute>
+          } />
+          <Route path="/users" element={
+            <ProtectedRoute allowedRoles={['admin']}><UsersPage /></ProtectedRoute>
           } />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
