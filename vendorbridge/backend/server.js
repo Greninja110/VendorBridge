@@ -15,5 +15,7 @@ app.use('/api/approvals',      require('./routes/approvals'));
 app.use('/api/purchase-orders',require('./routes/purchase-orders'));
 app.use('/api/invoices',       require('./routes/invoices'));
 app.use('/api/users',          require('./routes/users'));
+app.use('/api/reports',        require('./routes/reports'));
+app.use('/api/activity',       require('./routes/activity'));
 
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
