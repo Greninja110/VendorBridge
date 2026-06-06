@@ -355,7 +355,7 @@ This project was built as part of the **Odoo Hackathon** by:
 | Name | GitHub | Role |
 |------|--------|------|
 | Ashutosh Choudhary | [@Ashutosh-k-Choudhary](https://github.com/Ashutosh-k-Choudhary) | Database & Schema Design |
-| Greninja | [@Greninja110](https://github.com/Greninja110) | Backend — API, Auth, Business Logic |
+| Abhijeet Sahoo | [@Greninja110](https://github.com/Greninja110) | Backend — API, Auth, Business Logic |
 | Pritesh Suthar | [@priteshsuthar247](https://github.com/priteshsuthar247) | Frontend — UI, React, UX |
 
 ---
